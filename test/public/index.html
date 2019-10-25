@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>测试CIC通信</title>
+    <style type="text/css">
+        iframe {
+            width: 800px;
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+<iframe id="childFrame" src="http://b.cn/webEmbededInIframe.html"></iframe>
+<script type="text/javascript" src="cic-outside-iframe.js"></script>
+<script type="text/javascript">
+    var childFrame = document.getElementById('childFrame');
+    var connection = window.CicOutsideIframe.createConnection(childFrame.contentWindow);
+
+    connection.onMessage(function(dataFromChild) {
+        console.log('< parent: dataFromChild =');
+        console.log(dataFromChild);
+
+        if (dataFromChild.text === 'world') {
+            console.log('< parent: 主动发起断开连接');
+            connection.disconnectChild();
+        }
+    });
+
+    connection.onConnect(function() {
+        connection.postMessageToChild({
+            text: 'hello'
+        })
+    });
+
+    // 发起连接
+    connection.connectChild();
+</script>
+</body>
+</html>

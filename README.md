@@ -23,10 +23,10 @@ iframe通信框架
   - Listener类
     - listenerInstance.start\(\):void;
     - listenerInstance.destroy\(\):void;
-    - listenerInstance.onDisconnect\(fn:(\)=>void):void;
-    - listenerInstance.offDisconnect\(fn:(\)=>void):void;
-    - listenerInstance.onConnect\(fn:(\)=>void):void;
-    - listenerInstance.offConnect\(fn:(\)=>void):void;
+    - listenerInstance.onDisconnect\(fn:(listenerInstance:Listener\)=>void):void;
+    - listenerInstance.offDisconnect\(fn:(listenerInstance:Listener\)=>void):void;
+    - listenerInstance.onConnect\(fn:(listenerInstance:Listener\)=>void):void;
+    - listenerInstance.offConnect\(fn:(listenerInstance:Listener\)=>void):void;
     - listenerInstance.onMessage\(fn:(data:any\)=>void):void;
     - listenerInstance.offMessage\(fn:(data:any\)=>void):void;
     - listenerInstance.disconnectParent\(\);
@@ -114,19 +114,19 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 
 销毁listener实例，并触发disconnect事件
 
-#### listenerInstance.onDisconnect(fn:()=>void):void;
+#### listenerInstance.onDisconnect(fn:(listenerInstance:Listener)=>void):void;
 
 添加'disconnect'事件的回调方法
 
-#### listenerInstance.offDisconnect(fn:()=>void):void;
+#### listenerInstance.offDisconnect(fn:(listenerInstance:Listener)=>void):void;
 
 移除'disconnect'事件的回调方法
 
-#### listenerInstance.onConnect(fn:()=>void):void;
+#### listenerInstance.onConnect(fn:(listenerInstance:Listener)=>void):void;
 
 添加'connect'事件的回调方法
 
-#### listenerInstance.offConnect(fn:()=>void):void;
+#### listenerInstance.offConnect(fn:(listenerInstance:Listener)=>void):void;
 
 移除'connect'事件的回调方法
 
@@ -165,12 +165,14 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 ### 浏览器内直接引入
 
 https://unpkg.com/cic@1.0.1/dist/cic-inside-iframe.js
+https://unpkg.com/cic@1.0.1/dist/cic-inside-iframe.min.js
 
 可以直接使用 window.CicInsideIframe 对象
 
 ---
 
 https://unpkg.com/cic@1.0.1/dist/cic-outside-iframe.js
+https://unpkg.com/cic@1.0.1/dist/cic-outside-iframe.min.js
 
 可以直接使用 window.CicOutsideIframe 对象
 

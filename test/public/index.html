@@ -11,30 +11,28 @@
     </style>
 </head>
 <body>
-<iframe id="childFrame" src="http://b.cn/webEmbededInIframe.html"></iframe>
-<script type="text/javascript" src="cic-outside-iframe.js"></script>
+<iframe id="iframeWindow" src="./webEmbededInIframe.html"></iframe>
+<script type="text/javascript" src="./cic-outside-iframe.js"></script>
 <script type="text/javascript">
-    var childFrame = document.getElementById('childFrame');
-    var connection = window.CicOutsideIframe.createConnection(childFrame.contentWindow);
+    var connection = window.CicOutsideIframe.createConnection(document.getElementById('iframeWindow'));
 
-    connection.onMessage(function(dataFromChild) {
-        console.log('< parent: dataFromChild =');
-        console.log(dataFromChild);
-
-        if (dataFromChild.text === 'world') {
+    connection.onMessage(function(dataFromIframe) {
+        console.log('< parent: dataFromIframe =');
+        console.log(dataFromIframe);
+        if (dataFromIframe.text === 'world') {
             console.log('< parent: 主动发起断开连接');
-            connection.disconnectChild();
+            connection.disconnectIframe();
         }
     });
 
     connection.onConnect(function() {
-        connection.postMessageToChild({
+        connection.postMessageToIframe({
             text: 'hello'
         })
     });
 
     // 发起连接
-    connection.connectChild();
+    connection.connectIframe();
 </script>
 </body>
 </html>

@@ -5,18 +5,18 @@
     <title></title>
 </head>
 <body>
-<script type="text/javascript" src="cic-inside-iframe.js"></script>
+<script type="text/javascript" src="./cic-inside-iframe.js"></script>
 <script type="text/javascript">
     // 用setTimeout故意延迟几秒，等待重试连接
     setTimeout(function() {
         var listener = window.CicInsideIframe.createListener();
 
         listener.onConnect(function() {
-            console.log('> child: 连接已建立');
+            console.log('> 连接已建立');
         });
 
         listener.onMessage(function(dataFromParent) {
-            console.log('> child: dataFromParent =');
+            console.log('> dataFromParent =');
             console.log(dataFromParent);
 
             if(dataFromParent.text === 'hello') {
@@ -27,7 +27,7 @@
         });
 
         listener.onDisconnect(function() {
-            console.log('> child: 回调disconnect方法')
+            console.log('> 回调disconnect方法')
             listener.destroy();
         });
 

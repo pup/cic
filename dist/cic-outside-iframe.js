@@ -150,8 +150,8 @@ function () {
 
         if (childMsg.msgType == 'childReady' && _this.connected) {
           _this.connectListeners.forEach(function (fn) {
-            fn(this);
-          }, _this);
+            fn(_this);
+          });
         }
 
         if (childMsg.msgType == 'disconnectFromChild' && _this.connected) {
@@ -163,8 +163,8 @@ function () {
 
         if ((childMsg.msgType == 'disconnectFromChild' || childMsg.msgType == 'disconnectFromParentConfirm') && _this.connected) {
           _this.disconnectListeners.forEach(function (fn) {
-            fn(this);
-          }, _this);
+            fn(_this);
+          });
 
           clearTimeout(_this.timeoutId);
 
@@ -177,7 +177,7 @@ function () {
         if (childMsg.msgType == 'message' && _this.connected) {
           _this.messageListeners.forEach(function (fn) {
             fn(childMsg.data);
-          }, _this);
+          });
         }
       }
     };
@@ -189,6 +189,15 @@ function () {
   _createClass(Connection, [{
     key: "destroy",
     value: function destroy() {
+      var _this2 = this;
+
+      if (this.connected) {
+        this.disconnectIframe();
+        this.disconnectListeners.forEach(function (fn) {
+          fn(_this2);
+        });
+      }
+
       this.disconnectListeners.length = 0;
       this.connectListeners.length = 0;
       this.messageListeners.length = 0;
@@ -249,13 +258,15 @@ function () {
       });
     }
   }, {
-    key: "connectChild",
+    key: "connectIframe",
 
     /**
      * 主动发起对iframe的连接
      * 每秒钟常识建立一次连接
      */
-    value: function connectChild() {
+    value: function connectIframe() {
+      var _this3 = this;
+
       if (this.isDestroyed) {
         throw new Error('当前Connection已销毁');
       }
@@ -273,13 +284,14 @@ function () {
       }, '*');
       this.timeoutId = setTimeout(function () {
         log('尝试建立连接');
-        this.connecting = false;
-        this.connectChild();
-      }.bind(this), 1000);
+        _this3.connecting = false;
+
+        _this3.connectIframe();
+      }, 1000);
     }
   }, {
-    key: "disconnectChild",
-    value: function disconnectChild() {
+    key: "disconnectIframe",
+    value: function disconnectIframe() {
       clearTimeout(this.timeoutId);
 
       if (this.connected) {
@@ -292,15 +304,13 @@ function () {
       }
     }
   }, {
-    key: "postMessageToChild",
-    value: function postMessageToChild(data) {
-      if (this.iframeWindow) {
-        this.iframeWindow.postMessage({
-          cicId: this.cicId,
-          msgType: 'message',
-          data: data
-        }, '*');
-      }
+    key: "postMessageToIframe",
+    value: function postMessageToIframe(data) {
+      this.iframeWindow.postMessage({
+        cicId: this.cicId,
+        msgType: 'message',
+        data: data
+      }, '*');
     }
   }]);
 
@@ -318,7 +328,15 @@ var Connection = __webpack_require__("2GRw");
 
 module.exports = {
   createConnection: function createConnection(iframeWindow) {
-    return new Connection(iframeWindow);
+    if (iframeWindow.postMessage) {
+      return new Connection(iframeWindow);
+    }
+
+    if (iframeWindow.contentWindow.postMessage) {
+      return new Connection(iframeWindow.contentWindow);
+    }
+
+    throw new Error('传入"CicOutsideIframe.createConnection(iframeWindow)"的"iframeWindow"对象不存在”postMessage“方法。');
   }
 };
 

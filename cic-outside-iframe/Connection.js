@@ -20,6 +20,13 @@ class Connection {
   }
 
   destroy() {
+    if (this.connected) {
+      this.disconnectIframe();
+      this.disconnectListeners.forEach((fn) => {
+        fn(this);
+      });
+    }
+
     this.disconnectListeners.length = 0;
     this.connectListeners.length = 0;
     this.messageListeners.length = 0;
@@ -84,24 +91,26 @@ class Connection {
         this.connecting = false;
         this.connected = true;
         clearTimeout(this.timeoutId);
+
         this.iframeWindow.postMessage({
             cicId: this.cicId,
-            msgType: 'pong_confirm',
+            msgType: 'pong_confirm'
           },
           '*'
         );
+
       }
 
       if (childMsg.msgType == 'childReady' && this.connected) {
-        this.connectListeners.forEach(function(fn) {
+        this.connectListeners.forEach((fn) => {
           fn(this);
-        }, this);
+        });
       }
 
       if (childMsg.msgType == 'disconnectFromChild' && this.connected) {
         this.iframeWindow.postMessage({
             cicId: this.cicId,
-            msgType: 'disconnectFromChildConfirm',
+            msgType: 'disconnectFromChildConfirm'
           },
           '*'
         );
@@ -109,9 +118,9 @@ class Connection {
 
       if ((childMsg.msgType == 'disconnectFromChild' || childMsg.msgType ==
           'disconnectFromParentConfirm') && this.connected) {
-        this.disconnectListeners.forEach(function(fn) {
+        this.disconnectListeners.forEach((fn) => {
           fn(this);
-        }, this);
+        });
         clearTimeout(this.timeoutId);
         if (this.connected) {
           this.connected = false;
@@ -120,9 +129,9 @@ class Connection {
       }
 
       if (childMsg.msgType == 'message' && this.connected) {
-        this.messageListeners.forEach(function(fn) {
+        this.messageListeners.forEach((fn) => {
           fn(childMsg.data);
-        }, this);
+        });
       }
     }
   }
@@ -131,7 +140,7 @@ class Connection {
    * 主动发起对iframe的连接
    * 每秒钟常识建立一次连接
    */
-  connectChild() {
+  connectIframe() {
     if (this.isDestroyed) {
       throw new Error('当前Connection已销毁');
     }
@@ -143,50 +152,44 @@ class Connection {
     clearTimeout(this.timeoutId);
 
     this.timeoutId = null;
-
     this.connecting = true;
 
     this.iframeWindow.postMessage({
         cicId: this.cicId,
-        msgType: 'ping',
+        msgType: 'ping'
       },
       '*'
     );
 
-    this.timeoutId = setTimeout(
-      function() {
-        log('尝试建立连接');
-        this.connecting = false;
-        this.connectChild();
-      }.bind(this),
-      1000
-    );
+    this.timeoutId = setTimeout(() => {
+      log('尝试建立连接');
+      this.connecting = false;
+      this.connectIframe();
+    }, 1000);
   }
 
-  disconnectChild() {
+  disconnectIframe() {
     clearTimeout(this.timeoutId);
     if (this.connected) {
       this.connected = false;
       this.connecting = false;
       this.iframeWindow.postMessage({
           cicId: this.cicId,
-          msgType: 'disconnectFromParent',
+          msgType: 'disconnectFromParent'
         },
         '*'
       );
     }
   }
 
-  postMessageToChild(data) {
-    if (this.iframeWindow) {
-      this.iframeWindow.postMessage({
-          cicId: this.cicId,
-          msgType: 'message',
-          data: data,
-        },
-        '*'
-      );
-    }
+  postMessageToIframe(data) {
+    this.iframeWindow.postMessage({
+        cicId: this.cicId,
+        msgType: 'message',
+        data
+      },
+      '*'
+    );
   }
 }
 

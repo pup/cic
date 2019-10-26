@@ -7,6 +7,5 @@ webpack-configs/
 .eslintrc.js
 LICENSE
 package-lock.json
-README.md
 cic-inside-iframe/
 cic-outside-iframe/

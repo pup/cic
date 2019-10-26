@@ -128,63 +128,65 @@ function () {
     this.messageHandler = function (evt) {
       var parentMsg = evt.data;
 
-      if (parentMsg && parentMsg.cicId) {
-        if (_this.cicId) {
-          if (_this.cicId === parentMsg.cicId) {
-            if (parentMsg.msgType === 'pong_confirm') {
-              _this.connecting = false;
-              _this.connected = true;
+      if (!parentMsg || !parentMsg.cicId) {
+        return;
+      }
 
-              _this.connectListeners.forEach(function (fn) {
-                fn(this);
-              }, _this);
+      if (_this.cicId) {
+        if (_this.cicId === parentMsg.cicId) {
+          if (parentMsg.msgType === 'pong_confirm') {
+            _this.connecting = false;
+            _this.connected = true;
 
-              _this.sourceWindow.postMessage({
-                cicId: _this.cicId,
-                msgType: 'childReady'
-              }, _this.sourceOrigin);
-            }
+            _this.connectListeners.forEach(function (fn) {
+              fn(_this);
+            });
 
-            if (parentMsg.msgType === 'message') {
-              _this.messageListeners.forEach(function (fn) {
-                fn(parentMsg.data);
-              }, _this);
-            }
-
-            if (parentMsg.msgType === 'disconnectFromParent' && _this.connected) {
-              _this.sourceWindow.postMessage({
-                cicId: _this.cicId,
-                msgType: 'disconnectFromParentConfirm'
-              }, _this.sourceOrigin);
-            }
-
-            if ((parentMsg.msgType === 'disconnectFromChildConfirm' || parentMsg.msgType === 'disconnectFromParent') && _this.connected) {
-              listeningCicIds = listeningCicIds.filter(function (cicId) {
-                return cicId != this.cicId;
-              });
-              _this.connected = false;
-              _this.sourceOrigin = null;
-              _this.sourceWindow = null;
-              _this.connecting = false;
-              _this.cicId = null;
-
-              _this.disconnectListeners.forEach(function (fn) {
-                fn(this);
-              }, _this);
-            }
+            _this.sourceWindow.postMessage({
+              cicId: _this.cicId,
+              msgType: 'childReady'
+            }, _this.sourceOrigin);
           }
-        } else {
-          if (parentMsg.msgType === 'ping' && listeningCicIds.indexOf(parentMsg.cicId) === -1 && !_this.connecting) {
-            listeningCicIds.push(parentMsg.cicId);
-            _this.cicId = parentMsg.cicId;
-            _this.connecting = true;
-            _this.sourceWindow = evt.source;
-            _this.sourceOrigin = evt.origin;
-            evt.source.postMessage({
-              cicId: parentMsg.cicId,
-              msgType: 'pong'
-            }, evt.origin);
+
+          if (parentMsg.msgType === 'message') {
+            _this.messageListeners.forEach(function (fn) {
+              fn(parentMsg.data);
+            });
           }
+
+          if (parentMsg.msgType === 'disconnectFromParent' && _this.connected) {
+            _this.sourceWindow.postMessage({
+              cicId: _this.cicId,
+              msgType: 'disconnectFromParentConfirm'
+            }, _this.sourceOrigin);
+          }
+
+          if ((parentMsg.msgType === 'disconnectFromChildConfirm' || parentMsg.msgType === 'disconnectFromParent') && _this.connected) {
+            listeningCicIds = listeningCicIds.filter(function (cicId) {
+              return cicId != _this.cicId;
+            });
+            _this.connected = false;
+            _this.sourceOrigin = null;
+            _this.sourceWindow = null;
+            _this.connecting = false;
+            _this.cicId = null;
+
+            _this.disconnectListeners.forEach(function (fn) {
+              fn(_this);
+            });
+          }
+        }
+      } else {
+        if (parentMsg.msgType === 'ping' && listeningCicIds.indexOf(parentMsg.cicId) === -1 && !_this.connecting) {
+          listeningCicIds.push(parentMsg.cicId);
+          _this.cicId = parentMsg.cicId;
+          _this.connecting = true;
+          _this.sourceWindow = evt.source;
+          _this.sourceOrigin = evt.origin;
+          evt.source.postMessage({
+            cicId: parentMsg.cicId,
+            msgType: 'pong'
+          }, evt.origin);
         }
       }
     };
@@ -203,9 +205,20 @@ function () {
   }, {
     key: "destroy",
     value: function destroy() {
+      var _this2 = this;
+
+      if (this.connected) {
+        this.disconnectParent();
+        listeningCicIds = listeningCicIds.filter(function (cicId) {
+          return cicId != _this2.cicId;
+        });
+      }
+
+      this.cicId = null;
       this.disconnectListeners.length = 0;
       this.connectListeners.length = 0;
       this.messageListeners.length = 0;
+      this.connecting = false;
       this.isDestroyed = true;
       this.sourceWindow = null;
       this.sourceOrigin = null;

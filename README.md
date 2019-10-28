@@ -189,12 +189,12 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 ### 2.2 浏览器内直接引入
 
 - 使用 window.CicInsideIframe 对象
-- https://unpkg.com/cic@1.0.4/dist/cic-inside-iframe.js
-- https://unpkg.com/cic@1.0.4/dist/cic-inside-iframe.min.js
+- https://unpkg.com/cic@1.0.5/dist/cic-inside-iframe.js
+- https://unpkg.com/cic@1.0.5/dist/cic-inside-iframe.min.js
 
 - 使用 window.CicOutsideIframe 对象
-- https://unpkg.com/cic@1.0.4/dist/cic-outside-iframe.js
-- https://unpkg.com/cic@1.0.4/dist/cic-outside-iframe.min.js
+- https://unpkg.com/cic@1.0.5/dist/cic-outside-iframe.js
+- https://unpkg.com/cic@1.0.5/dist/cic-outside-iframe.min.js
 
 ---
 
@@ -203,7 +203,7 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 首先在`index.html`中签入需要通信的`内嵌页.html`。比如：
 
 ```
-<script type="text/javascript" src="https://unpkg.com/cic@1.0.1/dist/cic-outside-iframe.js"></script>
+<script type="text/javascript" src="https://unpkg.com/cic@1.0.5/dist/cic-outside-iframe.js"></script>
 
 <iframe id="iframeWindow" src="http://xxx.com/iframe.html"></iframe>
 
@@ -230,7 +230,7 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 `iframe.html`代码如下:
 
 ```
-<script type="text/javascript" src="https://unpkg.com/cic@1.0.1/dist/cic-inside-iframe.js"></script>
+<script type="text/javascript" src="https://unpkg.com/cic@1.0.5/dist/cic-inside-iframe.js"></script>
 <script type="text/javascript">
 
     window.onLoad = function() {

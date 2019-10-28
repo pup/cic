@@ -17,8 +17,8 @@
   },
   "keywords": [
     "cic",
-    "cross iframe",
-    "cross iframe communication"
+    "iframe通信",
+    "iframe communication"
   ],
   "author": "happy-coder",
   "license": "MIT",
@@ -44,8 +44,5 @@
     "webpack-dev-server": "^3.8.2",
     "webpack-merge": "^4.2.2"
   },
-  "dependencies": {
-    "@babel/polyfill": "^7.6.0",
-    "core-js": "^2.6.10"
-  }
+  "dependencies": {}
 }

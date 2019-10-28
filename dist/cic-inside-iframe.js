@@ -125,66 +125,64 @@ function () {
     this.sourceWindow = null;
     this.sourceOrigin = null;
 
-    this.messageHandler = function (evt) {
-      var parentMsg = evt.data;
+    this._destroy = function () {
+      _this.isDestroyed = true;
+      _this.disconnectListeners.length = 0;
+      _this.connectListeners.length = 0;
+      _this.messageListeners.length = 0;
+      window.removeEventListener('message', _this._messageHandler, false);
+    };
 
-      if (!parentMsg || !parentMsg.cicId) {
+    this._messageHandler = function (evt) {
+      if (!evt.data || !evt.data.cicId) {
         return;
       }
 
+      var _evt$data = evt.data,
+          cicId = _evt$data.cicId,
+          msgType = _evt$data.msgType,
+          data = _evt$data.data;
+
       if (_this.cicId) {
-        if (_this.cicId === parentMsg.cicId) {
-          if (parentMsg.msgType === 'pong_confirm') {
-            _this.connecting = false;
-            _this.connected = true;
+        if (_this.cicId !== cicId) {
+          return;
+        }
 
-            _this.connectListeners.forEach(function (fn) {
-              fn(_this);
-            });
+        if (msgType === 'pong_confirm') {
+          _this.connecting = false;
+          _this.connected = true;
 
-            _this.sourceWindow.postMessage({
-              cicId: _this.cicId,
-              msgType: 'childReady'
-            }, _this.sourceOrigin);
-          }
+          _this.connectListeners.forEach(function (fn) {
+            fn(_this);
+          });
 
-          if (parentMsg.msgType === 'message') {
-            _this.messageListeners.forEach(function (fn) {
-              fn(parentMsg.data);
-            });
-          }
+          _this.sourceWindow.postMessage({
+            cicId: cicId,
+            msgType: 'childReady'
+          }, _this.sourceOrigin);
+        } else if (msgType === 'message') {
+          _this.messageListeners.forEach(function (fn) {
+            fn(data);
+          });
+        } else if (msgType === 'disconnectFromParent' && _this.connected) {
+          _this.sourceWindow.postMessage({
+            cicId: cicId,
+            msgType: 'disconnectFromParentConfirm'
+          }, _this.sourceOrigin);
 
-          if (parentMsg.msgType === 'disconnectFromParent' && _this.connected) {
-            _this.sourceWindow.postMessage({
-              cicId: _this.cicId,
-              msgType: 'disconnectFromParentConfirm'
-            }, _this.sourceOrigin);
-          }
-
-          if ((parentMsg.msgType === 'disconnectFromChildConfirm' || parentMsg.msgType === 'disconnectFromParent') && _this.connected) {
-            listeningCicIds = listeningCicIds.filter(function (cicId) {
-              return cicId != _this.cicId;
-            });
-            _this.connected = false;
-            _this.sourceOrigin = null;
-            _this.sourceWindow = null;
-            _this.connecting = false;
-            _this.cicId = null;
-
-            _this.disconnectListeners.forEach(function (fn) {
-              fn(_this);
-            });
-          }
+          _this._disconnectHandler();
+        } else if (msgType === 'disconnectFromChildConfirm' && _this.connected) {
+          _this._disconnectHandler();
         }
       } else {
-        if (parentMsg.msgType === 'ping' && listeningCicIds.indexOf(parentMsg.cicId) === -1 && !_this.connecting) {
-          listeningCicIds.push(parentMsg.cicId);
-          _this.cicId = parentMsg.cicId;
+        if (msgType === 'ping' && listeningCicIds.indexOf(cicId) === -1 && !_this.connecting) {
+          listeningCicIds.push(cicId);
+          _this.cicId = cicId;
           _this.connecting = true;
           _this.sourceWindow = evt.source;
           _this.sourceOrigin = evt.origin;
           evt.source.postMessage({
-            cicId: parentMsg.cicId,
+            cicId: cicId,
             msgType: 'pong'
           }, evt.origin);
         }
@@ -199,39 +197,45 @@ function () {
         throw new Error('当前Listener已销毁');
       }
 
-      window.removeEventListener('message', this.messageHandler, false);
-      window.addEventListener('message', this.messageHandler, false);
+      window.removeEventListener('message', this._messageHandler, false);
+      window.addEventListener('message', this._messageHandler, false);
+      window.addEventListener('beforeunload', this._onBeforeUnload, false);
     }
   }, {
     key: "destroy",
     value: function destroy() {
+      if (this.connected) {
+        this.onDisconnect(this._destroy);
+        this.disconnectParent();
+      } else {
+        this._destroy();
+      }
+    }
+  }, {
+    key: "_disconnectHandler",
+    value: function _disconnectHandler() {
       var _this2 = this;
 
-      if (this.connected) {
-        this.disconnectParent();
-        listeningCicIds = listeningCicIds.filter(function (cicId) {
-          return cicId != _this2.cicId;
-        });
-      }
-
-      this.cicId = null;
-      this.disconnectListeners.length = 0;
-      this.connectListeners.length = 0;
-      this.messageListeners.length = 0;
-      this.connecting = false;
-      this.isDestroyed = true;
-      this.sourceWindow = null;
+      this.disconnectListeners.forEach(function (fn) {
+        fn(_this2);
+      });
+      listeningCicIds = listeningCicIds.filter(function (cicId) {
+        return cicId != _this2.cicId;
+      });
+      this.connected = false;
       this.sourceOrigin = null;
-      window.removeEventListener('message', this.messageHandler, false);
+      this.sourceWindow = null;
+      this.connecting = false;
+      this.cicId = null;
     }
   }, {
     key: "onDisconnect",
     value: function onDisconnect(fn) {
       if (this.isDestroyed) {
         throw new Error('当前Listener已销毁');
-      } else {
-        this.disconnectListeners.push(fn);
       }
+
+      this.disconnectListeners.push(fn);
     }
   }, {
     key: "offDisconnect",
@@ -245,12 +249,12 @@ function () {
     value: function onConnect(fn) {
       if (this.isDestroyed) {
         throw new Error('当前Listener已销毁');
-      } else {
-        this.connectListeners.push(fn);
+      }
 
-        if (this.connected) {
-          fn(this);
-        }
+      this.connectListeners.push(fn);
+
+      if (this.connected) {
+        fn(this);
       }
     }
   }, {
@@ -265,9 +269,9 @@ function () {
     value: function onMessage(fn) {
       if (this.isDestroyed) {
         throw new Error('当前Listener已销毁');
-      } else {
-        this.messageListeners.push(fn);
       }
+
+      this.messageListeners.push(fn);
     }
   }, {
     key: "offMessage",
@@ -296,7 +300,7 @@ function () {
           data: data
         }, this.sourceOrigin);
       } else {
-        throw new Error('Listener同父窗口的连接尚未建立，确保连接建立后调用该方法，Listener.onConnect()');
+        throw new Error('Listener同父窗口的连接尚未建立，确保连接建立后调用该方法，listenerInstance.onConnect()');
       }
     }
   }]);

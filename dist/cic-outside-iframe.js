@@ -129,81 +129,79 @@ function () {
     this.cicId = 'cic_id_' + ++_cicId;
     this.timeoutId = null;
 
-    this.messageHandler = function (evt) {
-      if (_this.isDestroyed) {
-        throw new Error('当前Connection已销毁');
+    this._onBeforeUnload = function () {
+      _this.disconnectIframe();
+
+      _this._destroy();
+    };
+
+    this._destroy = function () {
+      _this.disconnectListeners.length = 0;
+      _this.connectListeners.length = 0;
+      _this.messageListeners.length = 0;
+      _this.isDestroyed = true;
+      clearTimeout(_this.timeoutId);
+      window.removeEventListener('message', _this._messageHandler, false);
+      window.removeEventListener('beforeunload', _this._onBeforeUnload, false);
+    };
+
+    this._messageHandler = function (evt) {
+      if (!evt.data || !evt.data.cicId) {
+        return;
       }
 
-      var childMsg = evt.data;
+      var _evt$data = evt.data,
+          cicId = _evt$data.cicId,
+          msgType = _evt$data.msgType,
+          data = _evt$data.data;
 
-      if (childMsg && childMsg.cicId == _this.cicId) {
-        if (childMsg.msgType == 'pong' && _this.connecting) {
-          _this.connecting = false;
-          _this.connected = true;
-          clearTimeout(_this.timeoutId);
+      if (cicId != _this.cicId) {
+        return;
+      }
 
-          _this.iframeWindow.postMessage({
-            cicId: _this.cicId,
-            msgType: 'pong_confirm'
-          }, '*');
-        }
+      if (msgType == 'pong' && _this.connecting) {
+        _this.connecting = false;
+        _this.connected = true;
+        clearTimeout(_this.timeoutId);
 
-        if (childMsg.msgType == 'childReady' && _this.connected) {
-          _this.connectListeners.forEach(function (fn) {
-            fn(_this);
-          });
-        }
+        _this.iframeWindow.postMessage({
+          cicId: cicId,
+          msgType: 'pong_confirm'
+        }, '*');
+      } else if (msgType == 'childReady' && _this.connected) {
+        _this.connectListeners.forEach(function (fn) {
+          fn(_this);
+        });
+      } else if (msgType == 'disconnectFromChild' && _this.connected) {
+        _this.iframeWindow.postMessage({
+          cicId: cicId,
+          msgType: 'disconnectFromChildConfirm'
+        }, '*');
 
-        if (childMsg.msgType == 'disconnectFromChild' && _this.connected) {
-          _this.iframeWindow.postMessage({
-            cicId: _this.cicId,
-            msgType: 'disconnectFromChildConfirm'
-          }, '*');
-        }
-
-        if ((childMsg.msgType == 'disconnectFromChild' || childMsg.msgType == 'disconnectFromParentConfirm') && _this.connected) {
-          _this.disconnectListeners.forEach(function (fn) {
-            fn(_this);
-          });
-
-          clearTimeout(_this.timeoutId);
-
-          if (_this.connected) {
-            _this.connected = false;
-            _this.connecting = false;
-          }
-        }
-
-        if (childMsg.msgType == 'message' && _this.connected) {
-          _this.messageListeners.forEach(function (fn) {
-            fn(childMsg.data);
-          });
-        }
+        _this._disconnectHandler();
+      } else if (msgType == 'disconnectFromParentConfirm' && _this.connected) {
+        _this._disconnectHandler();
+      } else if (msgType == 'message' && _this.connected) {
+        _this.messageListeners.forEach(function (fn) {
+          fn(data);
+        });
       }
     };
 
     this.iframeWindow = iframeWindow;
-    window.addEventListener('message', this.messageHandler, false);
+    window.addEventListener('message', this._messageHandler, false);
+    window.addEventListener('beforeunload', this._onBeforeUnload, false);
   }
 
   _createClass(Connection, [{
     key: "destroy",
     value: function destroy() {
-      var _this2 = this;
-
       if (this.connected) {
         this.disconnectIframe();
-        this.disconnectListeners.forEach(function (fn) {
-          fn(_this2);
-        });
+        this.onDisconnect(this._destroy);
+      } else {
+        this._destroy();
       }
-
-      this.disconnectListeners.length = 0;
-      this.connectListeners.length = 0;
-      this.messageListeners.length = 0;
-      this.isDestroyed = true;
-      clearTimeout(this.timeoutId);
-      window.removeEventListener('message', this.messageHandler, false);
     }
   }, {
     key: "onDisconnect",
@@ -256,6 +254,18 @@ function () {
       this.messageListeners = this.messageListeners.filter(function (f) {
         return f != fn;
       });
+    }
+  }, {
+    key: "_disconnectHandler",
+    value: function _disconnectHandler() {
+      var _this2 = this;
+
+      this.disconnectListeners.forEach(function (fn) {
+        fn(_this2);
+      });
+      clearTimeout(this.timeoutId);
+      this.connected = false;
+      this.connecting = false;
     }
   }, {
     key: "connectIframe",

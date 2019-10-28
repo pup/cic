@@ -15,97 +15,99 @@ class Listener {
     if (this.isDestroyed) {
       throw new Error('当前Listener已销毁');
     }
-    window.removeEventListener('message', this.messageHandler, false);
-    window.addEventListener('message', this.messageHandler, false);
+    window.removeEventListener('message', this._messageHandler, false);
+    window.addEventListener('message', this._messageHandler, false);
+    window.addEventListener('beforeunload', this._onBeforeUnload, false);
   }
 
   destroy() {
     if (this.connected) {
+      this.onDisconnect(this._destroy);
       this.disconnectParent();
-      listeningCicIds = listeningCicIds.filter((cicId) => {
-        return cicId != this.cicId;
-      });
+    } else {
+      this._destroy();
     }
+  }
 
-    this.cicId = null;
+  _destroy = () => {
+    this.isDestroyed = true;
     this.disconnectListeners.length = 0;
     this.connectListeners.length = 0;
     this.messageListeners.length = 0;
-    this.connecting = false;
-    this.isDestroyed = true;
-    this.sourceWindow = null;
-    this.sourceOrigin = null;
-    window.removeEventListener('message', this.messageHandler, false);
+    window.removeEventListener('message', this._messageHandler, false);
   }
 
-  messageHandler = (evt) => {
-    let parentMsg = evt.data;
+  _disconnectHandler() {
+    this.disconnectListeners.forEach((fn) => {
+      fn(this);
+    });
+    listeningCicIds = listeningCicIds.filter((cicId) => {
+      return cicId != this.cicId;
+    });
+    this.connected = false;
+    this.sourceOrigin = null;
+    this.sourceWindow = null;
+    this.connecting = false;
+    this.cicId = null;
+  }
 
-    if (!parentMsg || !parentMsg.cicId) {
+  _messageHandler = (evt) => {
+    if (!evt.data || !evt.data.cicId) {
       return;
     }
 
-    
+    let {
+      cicId,
+      msgType,
+      data
+    } = evt.data;
 
     if (this.cicId) {
-      if (this.cicId === parentMsg.cicId) {
-        if (parentMsg.msgType === 'pong_confirm') {
-          this.connecting = false;
-          this.connected = true;
-          this.connectListeners.forEach((fn) => {
-            fn(this);
-          });
-
-          this.sourceWindow.postMessage({
-              cicId: this.cicId,
-              msgType: 'childReady',
-            },
-            this.sourceOrigin
-          );
-        }
-
-        if (parentMsg.msgType === 'message') {
-          this.messageListeners.forEach((fn) => {
-            fn(parentMsg.data);
-          });
-        }
-
-        if (parentMsg.msgType === 'disconnectFromParent' && this.connected) {
-          this.sourceWindow.postMessage({
-              cicId: this.cicId,
-              msgType: 'disconnectFromParentConfirm',
-            },
-            this.sourceOrigin
-          );
-        }
-
-        if ((parentMsg.msgType === 'disconnectFromChildConfirm' ||
-            parentMsg.msgType === 'disconnectFromParent') && this.connected) {
-          listeningCicIds = listeningCicIds.filter((cicId) => {
-            return cicId != this.cicId;
-          });
-          this.connected = false;
-          this.sourceOrigin = null;
-          this.sourceWindow = null;
-          this.connecting = false;
-          this.cicId = null;
-          this.disconnectListeners.forEach((fn) => {
-            fn(this);
-          });
-        }
+      if (this.cicId !== cicId) {
+        return;
       }
+
+      if (msgType === 'pong_confirm') {
+        this.connecting = false;
+        this.connected = true;
+        this.connectListeners.forEach((fn) => {
+          fn(this);
+        });
+
+        this.sourceWindow.postMessage({
+            cicId,
+            msgType: 'childReady',
+          },
+          this.sourceOrigin
+        );
+      } else if (msgType === 'message') {
+        this.messageListeners.forEach((fn) => {
+          fn(data);
+        });
+      } else if (msgType === 'disconnectFromParent' && this.connected) {
+        this.sourceWindow.postMessage({
+            cicId,
+            msgType: 'disconnectFromParentConfirm',
+          },
+          this.sourceOrigin
+        );
+        this._disconnectHandler();
+      } else if (msgType === 'disconnectFromChildConfirm' && this.connected) {
+        this._disconnectHandler();
+      }
+
     } else {
-      if (parentMsg.msgType === 'ping' && listeningCicIds.indexOf(
-          parentMsg.cicId) === -1 && !this.connecting) {
-        listeningCicIds.push(parentMsg.cicId);
-        this.cicId = parentMsg.cicId;
+      if (msgType === 'ping' && listeningCicIds.indexOf(
+          cicId) === -1 && !this.connecting) {
+        listeningCicIds.push(cicId);
+        this.cicId = cicId;
         this.connecting = true;
         this.sourceWindow = evt.source;
         this.sourceOrigin = evt.origin;
 
         evt.source.postMessage({
-            cicId: parentMsg.cicId,
-            msgType: 'pong',
+            cicId,
+            msgType: 'pong'
           },
           evt.origin
         );
@@ -116,9 +118,8 @@ class Listener {
   onDisconnect(fn) {
     if (this.isDestroyed) {
       throw new Error('当前Listener已销毁');
-    } else {
-      this.disconnectListeners.push(fn);
     }
+    this.disconnectListeners.push(fn);
   }
 
   offDisconnect(fn) {
@@ -130,11 +131,10 @@ class Listener {
   onConnect(fn) {
     if (this.isDestroyed) {
       throw new Error('当前Listener已销毁');
-    } else {
-      this.connectListeners.push(fn);
-      if (this.connected) {
-        fn(this);
-      }
+    }
+    this.connectListeners.push(fn);
+    if (this.connected) {
+      fn(this);
     }
   }
 
@@ -147,9 +147,8 @@ class Listener {
   onMessage(fn) {
     if (this.isDestroyed) {
       throw new Error('当前Listener已销毁');
-    } else {
-      this.messageListeners.push(fn);
     }
+    this.messageListeners.push(fn);
   }
 
   offMessage(fn) {
@@ -174,12 +173,13 @@ class Listener {
       this.sourceWindow.postMessage({
           cicId: this.cicId,
           msgType: 'message',
-          data: data,
+          data
         },
         this.sourceOrigin
       );
     } else {
-      throw new Error('Listener同父窗口的连接尚未建立，确保连接建立后调用该方法，Listener.onConnect()');
+      throw new Error(
+        'Listener同父窗口的连接尚未建立，确保连接建立后调用该方法，listenerInstance.onConnect()');
     }
   }
 }

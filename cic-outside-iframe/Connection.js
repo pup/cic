@@ -16,23 +16,32 @@ class Connection {
 
   constructor(iframeWindow) {
     this.iframeWindow = iframeWindow;
-    window.addEventListener('message', this.messageHandler, false);
+    window.addEventListener('message', this._messageHandler, false);
+    window.addEventListener('beforeunload', this._onBeforeUnload, false);
   }
 
   destroy() {
     if (this.connected) {
       this.disconnectIframe();
-      this.disconnectListeners.forEach((fn) => {
-        fn(this);
-      });
+      this.onDisconnect(this._destroy);
+    } else {
+      this._destroy();
     }
+  }
 
+  _onBeforeUnload = () => {
+    this.disconnectIframe();
+    this._destroy();
+  }
+
+  _destroy = () => {
     this.disconnectListeners.length = 0;
     this.connectListeners.length = 0;
     this.messageListeners.length = 0;
     this.isDestroyed = true;
     clearTimeout(this.timeoutId);
-    window.removeEventListener('message', this.messageHandler, false);
+    window.removeEventListener('message', this._messageHandler, false);
+    window.removeEventListener('beforeunload', this._onBeforeUnload, false);
   }
 
   onDisconnect(fn) {
@@ -80,59 +89,59 @@ class Connection {
     });
   }
 
-  messageHandler = (evt) => {
-    if (this.isDestroyed) {
-      throw new Error('当前Connection已销毁');
+  _disconnectHandler() {
+    this.disconnectListeners.forEach((fn) => {
+      fn(this);
+    });
+    clearTimeout(this.timeoutId);
+    this.connected = false;
+    this.connecting = false;
+  }
+
+  _messageHandler = (evt) => {
+    if (!evt.data || !evt.data.cicId) {
+      return;
     }
 
-    let childMsg = evt.data;
-    if (childMsg && childMsg.cicId == this.cicId) {
-      if (childMsg.msgType == 'pong' && this.connecting) {
-        this.connecting = false;
-        this.connected = true;
-        clearTimeout(this.timeoutId);
+    let {
+      cicId,
+      msgType,
+      data
+    } = evt.data;
 
-        this.iframeWindow.postMessage({
-            cicId: this.cicId,
-            msgType: 'pong_confirm'
-          },
-          '*'
-        );
+    if (cicId != this.cicId) {
+      return;
+    }
 
-      }
+    if (msgType == 'pong' && this.connecting) {
+      this.connecting = false;
+      this.connected = true;
+      clearTimeout(this.timeoutId);
 
-      if (childMsg.msgType == 'childReady' && this.connected) {
-        this.connectListeners.forEach((fn) => {
-          fn(this);
-        });
-      }
-
-      if (childMsg.msgType == 'disconnectFromChild' && this.connected) {
-        this.iframeWindow.postMessage({
-            cicId: this.cicId,
-            msgType: 'disconnectFromChildConfirm'
-          },
-          '*'
-        );
-      }
-
-      if ((childMsg.msgType == 'disconnectFromChild' || childMsg.msgType ==
-          'disconnectFromParentConfirm') && this.connected) {
-        this.disconnectListeners.forEach((fn) => {
-          fn(this);
-        });
-        clearTimeout(this.timeoutId);
-        if (this.connected) {
-          this.connected = false;
-          this.connecting = false;
-        }
-      }
-
-      if (childMsg.msgType == 'message' && this.connected) {
-        this.messageListeners.forEach((fn) => {
-          fn(childMsg.data);
-        });
-      }
+      this.iframeWindow.postMessage({
+          cicId,
+          msgType: 'pong_confirm'
+        },
+        '*'
+      );
+    } else if (msgType == 'childReady' && this.connected) {
+      this.connectListeners.forEach((fn) => {
+        fn(this);
+      });
+    } else if (msgType == 'disconnectFromChild' && this.connected) {
+      this.iframeWindow.postMessage({
+          cicId,
+          msgType: 'disconnectFromChildConfirm'
+        },
+        '*'
+      );
+      this._disconnectHandler();
+    } else if (msgType == 'disconnectFromParentConfirm' && this.connected) {
+      this._disconnectHandler();
+    } else if (msgType == 'message' && this.connected) {
+      this.messageListeners.forEach((fn) => {
+        fn(data);
+      });
     }
   }
 

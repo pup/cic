@@ -7,7 +7,7 @@ iframe通信框架
 - 1. API
   - 1.1 CicOutsideIframe 对象
     - 1.1.1 类方法：CicOutsideIframe.createConnection\(iframeWindow:HTMLIFrameElement\):Connection;
-  - 1.2 Connection类，只有实例方法
+  - 1.2 Connection类的实例属性和实例方法
     - 1.2.1 connectionInstance.destroy\(\);
     - 1.2.2 connectionInstance.onDisconnect\(fn:(connectionInstance:Connection\)=>void):void;
     - 1.2.3 connectionInstance.offDisconnect\(fn:(connectionInstance:Connection\)=>void):void;
@@ -18,6 +18,8 @@ iframe通信框架
     - 1.2.8 connectionInstance.connectIframe\(\):void;
     - 1.2.9 connectionInstance.disconnectIframe\(\):void;
     - 1.2.10 connectionInstance.postMessageToIframe\(data: any\):void;
+    - 1.2.11 connectionInstance.connected:boolean.
+    - 1.2.12 connectionInstance.isDestroyed:boolean.
   - 1.3 CicInsideIframe对象
     - 1.3.1 类方法：CicInsideIframe.createListener\(\):Listener;
   - 1.4 Listener类
@@ -31,6 +33,8 @@ iframe通信框架
     - 1.4.8 listenerInstance.offMessage\(fn:(data:any\)=>void):void;
     - 1.4.9 listenerInstance.disconnectParent\(\);
     - 1.4.10 listenerInstance.postMessageToParent\(data:any\):void;
+    - 1.2.11 listenerInstance.connected:boolean.
+    - 1.2.12 listenerInstance.isDestroyed:boolean.
 - 2. 用法
   - 2.1 module形式引入
   - 2.2 浏览器内直接引入
@@ -49,10 +53,9 @@ iframe的父页面使用的连接对象
 
 ---
 
-### 1.2 Connection类，只有实例方法
+### 1.2 Connection类的实例属性和实例方法
 
 #### 1.2.1 connectionInstance.destroy();
-
 销毁连接实例
 
 #### 1.2.2 connectionInstance.onDisconnect(fn:(connectionInstance:Connection)=>void):void;
@@ -91,6 +94,15 @@ iframe的父页面使用的连接对象
 
 向iframe发送数据
 
+#### 1.2.11 connectionInstance.connected:boolean.
+
+是否是已连接状态
+
+#### 1.2.12 connectionInstance.isDestroyed:boolean.
+
+是否是已销毁状态
+
+
 
 ---
 
@@ -104,7 +116,7 @@ iframe的父页面使用的连接对象
 
 ### 1.4 Listener类
 
-Listener类的实例方法说明如下
+Listener类的实例方法和实例属性说明如下
 
 #### 1.4.1 listenerInstance.start():void;
 
@@ -146,6 +158,16 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 
 向父页面发送消息
 
+
+#### 1.2.11 listenerInstance.connected:boolean.
+
+是否是已连接状态
+
+#### 1.2.12 listenerInstance.isDestroyed:boolean.
+
+是否是已销毁状态
+
+
 ## 2. 用法
 
 ### 2.1 module形式引入
@@ -167,12 +189,12 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 ### 2.2 浏览器内直接引入
 
 - 使用 window.CicInsideIframe 对象
-- https://unpkg.com/cic@1.0.1/dist/cic-inside-iframe.js
-- https://unpkg.com/cic@1.0.1/dist/cic-inside-iframe.min.js
+- https://unpkg.com/cic@1.0.4/dist/cic-inside-iframe.js
+- https://unpkg.com/cic@1.0.4/dist/cic-inside-iframe.min.js
 
 - 使用 window.CicOutsideIframe 对象
-- https://unpkg.com/cic@1.0.1/dist/cic-outside-iframe.js
-- https://unpkg.com/cic@1.0.1/dist/cic-outside-iframe.min.js
+- https://unpkg.com/cic@1.0.4/dist/cic-outside-iframe.js
+- https://unpkg.com/cic@1.0.4/dist/cic-outside-iframe.min.js
 
 ---
 

@@ -131,8 +131,6 @@ function () {
 
     this._onBeforeUnload = function () {
       _this.disconnectIframe();
-
-      _this._destroy();
     };
 
     this._destroy = function () {
@@ -197,8 +195,8 @@ function () {
     key: "destroy",
     value: function destroy() {
       if (this.connected) {
-        this.disconnectIframe();
         this.onDisconnect(this._destroy);
+        this.disconnectIframe();
       } else {
         this._destroy();
       }
@@ -293,7 +291,7 @@ function () {
         msgType: 'ping'
       }, '*');
       this.timeoutId = setTimeout(function () {
-        log('尝试建立连接');
+        log('正在尝试建立连接');
         _this3.connecting = false;
 
         _this3.connectIframe();

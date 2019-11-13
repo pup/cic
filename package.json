@@ -7,7 +7,6 @@
   },
   "scripts": {
     "clean": "del-cli dist",
-    "start": "npm run clean; webpack-dev-server --open --config webpack-configs/webpack.dev.js",
     "build": "npm run clean; webpack --config webpack-configs/webpack.prod.js",
     "dev": "npm run clean; webpack --config webpack-configs/webpack.dev.js"
   },
@@ -18,7 +17,8 @@
   "keywords": [
     "cic",
     "iframe通信",
-    "iframe communication"
+    "iframe communication",
+    "cross iframe communication"
   ],
   "author": "happy-coder",
   "license": "MIT",
@@ -33,16 +33,13 @@
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
     "babel-plugin-add-module-exports": "^1.0.2",
-    "clean-webpack-plugin": "^3.0.0",
     "del-cli": "^3.0.0",
     "eslint": "^6.5.1",
     "eslint-loader": "^3.0.2",
-    "html-webpack-plugin": "^3.2.0",
     "parallel-webpack": "^2.4.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.8.2",
     "webpack-merge": "^4.2.2"
-  },
-  "dependencies": {}
+  }
 }

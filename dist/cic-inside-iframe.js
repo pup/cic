@@ -124,13 +124,20 @@ function () {
     this.isDestroyed = false;
     this.sourceWindow = null;
     this.sourceOrigin = null;
+    this.started = false;
+
+    this._onBeforeUnload = function () {
+      _this.disconnectParent();
+    };
 
     this._destroy = function () {
       _this.isDestroyed = true;
+      _this.started = false;
       _this.disconnectListeners.length = 0;
       _this.connectListeners.length = 0;
       _this.messageListeners.length = 0;
       window.removeEventListener('message', _this._messageHandler, false);
+      window.removeEventListener('beforeunload', _this._onBeforeUnload, false);
     };
 
     this._messageHandler = function (evt) {
@@ -197,9 +204,12 @@ function () {
         throw new Error('当前Listener已销毁');
       }
 
-      window.removeEventListener('message', this._messageHandler, false);
-      window.addEventListener('message', this._messageHandler, false);
-      window.addEventListener('beforeunload', this._onBeforeUnload, false);
+      if (!this.started) {
+        window.addEventListener('message', this._messageHandler, false);
+        window.addEventListener('beforeunload', this._onBeforeUnload, false);
+      }
+
+      this.started = true;
     }
   }, {
     key: "destroy",

@@ -1,46 +1,44 @@
 # cic
 
-iframe通信框架
+简单易用的iframe通信库
 
-<!-- MarkdownTOC -->
+### 索引
 
-- 1. API
-  - 1.1 CicOutsideIframe 对象
-    - 1.1.1 类方法：CicOutsideIframe.createConnection\(iframeWindow:HTMLIFrameElement\):Connection;
-  - 1.2 Connection类的实例属性和实例方法
-    - 1.2.1 connectionInstance.destroy\(\);
-    - 1.2.2 connectionInstance.onDisconnect\(fn:(connectionInstance:Connection\)=>void):void;
-    - 1.2.3 connectionInstance.offDisconnect\(fn:(connectionInstance:Connection\)=>void):void;
-    - 1.2.4 connectionInstance.onConnect\(fn:(connectionInstance:Connection\)=>void):void;
-    - 1.2.5 connectionInstance.offConnect\(fn:(connectionInstance:Connection\)=>void):void;
-    - 1.2.6 connectionInstance.onMessage\(fn:(msg: string\)=>void):void;
-    - 1.2.7 connectionInstance.offMessage\(fn:(msg: string\)=>void):void;
-    - 1.2.8 connectionInstance.connectIframe\(\):void;
-    - 1.2.9 connectionInstance.disconnectIframe\(\):void;
-    - 1.2.10 connectionInstance.postMessageToIframe\(data: any\):void;
-    - 1.2.11 connectionInstance.connected:boolean.
-    - 1.2.12 connectionInstance.isDestroyed:boolean.
-  - 1.3 CicInsideIframe对象
-    - 1.3.1 类方法：CicInsideIframe.createListener\(\):Listener;
-  - 1.4 Listener类
-    - 1.4.1 listenerInstance.start\(\):void;
-    - 1.4.2 listenerInstance.destroy\(\):void;
-    - 1.4.3 listenerInstance.onDisconnect\(fn:(listenerInstance:Listener\)=>void):void;
-    - 1.4.4 listenerInstance.offDisconnect\(fn:(listenerInstance:Listener\)=>void):void;
-    - 1.4.5 listenerInstance.onConnect\(fn:(listenerInstance:Listener\)=>void):void;
-    - 1.4.6 listenerInstance.offConnect\(fn:(listenerInstance:Listener\)=>void):void;
-    - 1.4.7 listenerInstance.onMessage\(fn:(data:any\)=>void):void;
-    - 1.4.8 listenerInstance.offMessage\(fn:(data:any\)=>void):void;
-    - 1.4.9 listenerInstance.disconnectParent\(\);
-    - 1.4.10 listenerInstance.postMessageToParent\(data:any\):void;
-    - 1.2.11 listenerInstance.connected:boolean.
-    - 1.2.12 listenerInstance.isDestroyed:boolean.
-- 2. 用法
-  - 2.1 module形式引入
-  - 2.2 浏览器内直接引入
-  - 2.3 举例说明
-
-<!-- /MarkdownTOC -->
+- [API](#1-api)
+  - [1.1 CicOutsideIframe 对象](#11-cicoutsideiframe-对象)
+    - [1.1.1 类方法：CicOutsideIframe.createConnection\(iframeWindow:HTMLIFrameElement\):Connection;](#111-类方法cicoutsideiframecreateconnectioniframewindowhtmliframeelementconnection)
+  - [1.2 Connection类的实例属性和实例方法](#12-connection类的实例属性和实例方法)
+    - [1.2.1 connectionInstance.destroy\(\);](#121-connectioninstancedestroy)
+    - [1.2.2 connectionInstance.onDisconnect\(fn:\(connectionInstance:Connection\)=>void\):void;](#122-connectioninstanceondisconnectfnconnectioninstanceconnectionvoidvoid)
+    - [1.2.3 connectionInstance.offDisconnect\(fn:\(connectionInstance:Connection\)=>void\):void;](#123-connectioninstanceoffdisconnectfnconnectioninstanceconnectionvoidvoid)
+    - [1.2.4 connectionInstance.onConnect\(fn:\(connectionInstance:Connection\)=>void\):void;](#124-connectioninstanceonconnectfnconnectioninstanceconnectionvoidvoid)
+    - [1.2.5 connectionInstance.offConnect\(fn:\(connectionInstance:Connection\)=>void\):void;](#125-connectioninstanceoffconnectfnconnectioninstanceconnectionvoidvoid)
+    - [1.2.6 connectionInstance.onMessage\(fn:\(msg: string\)=>void\):void;](#126-connectioninstanceonmessagefnmsg-stringvoidvoid)
+    - [1.2.7 connectionInstance.offMessage\(fn:\(msg: string\)=>void\):void;](#127-connectioninstanceoffmessagefnmsg-stringvoidvoid)
+    - [1.2.8 connectionInstance.connectIframe\(\):void;](#128-connectioninstanceconnectiframevoid)
+    - [1.2.9 connectionInstance.disconnectIframe\(\):void;](#129-connectioninstancedisconnectiframevoid)
+    - [1.2.10 connectionInstance.postMessageToIframe\(data: any\):void;](#1210-connectioninstancepostmessagetoiframedata-anyvoid)
+    - [1.2.11 connectionInstance.connected:boolean](#1211-connectioninstanceconnectedboolean)
+    - [1.2.12 connectionInstance.isDestroyed:boolean](#1212-connectioninstanceisdestroyedboolean)
+  - [1.3 CicInsideIframe对象](#13-cicinsideiframe对象)
+    - [1.3.1 类方法：CicInsideIframe.createListener\(\):Listener;](#131-类方法cicinsideiframecreatelistenerlistener)
+  - [1.4 Listener类](#14-listener类)
+    - [1.4.1 listenerInstance.start\(\):void;](#141-listenerinstancestartvoid)
+    - [1.4.2 listenerInstance.destroy\(\):void;](#142-listenerinstancedestroyvoid)
+    - [1.4.3 listenerInstance.onDisconnect\(fn:(listenerInstance:Listener\)=>void):void;](#143-listenerinstanceondisconnectfnlistenerinstancelistenervoidvoid)
+    - [1.4.4 listenerInstance.offDisconnect\(fn:(listenerInstance:Listener\)=>void):void;](#144-listenerinstanceoffdisconnectfnlistenerinstancelistenervoidvoid)
+    - [1.4.5 listenerInstance.onConnect\(fn:(listenerInstance:Listener\)=>void):void;](#145-listenerinstanceonconnectfnlistenerinstancelistenervoidvoid)
+    - [1.4.6 listenerInstance.offConnect\(fn:(listenerInstance:Listener\)=>void):void;](#146-listenerinstanceoffconnectfnlistenerinstancelistenervoidvoid)
+    - [1.4.7 listenerInstance.onMessage\(fn:(data:any\)=>void):void;](#147-listenerinstanceonmessagefndataanyvoidvoid)
+    - [1.4.8 listenerInstance.offMessage\(fn:(data:any\)=>void):void;](#148-listenerinstanceoffmessagefndataanyvoidvoid)
+    - [1.4.9 listenerInstance.disconnectParent\(\);](#149-listenerinstancedisconnectparent)
+    - [1.4.10 listenerInstance.postMessageToParent\(data:any\):void;](#1410-listenerinstancepostmessagetoparentdataanyvoid)
+    - [1.2.11 listenerInstance.connected:boolean](#1211-listenerinstanceconnectedboolean)
+    - [1.2.12 listenerInstance.isDestroyed:boolean](#1212-listenerinstanceisdestroyedboolean)
+- [2. 用法](#2-用法)
+  - [2.1 module形式引入](#21-module形式引入)
+  - [2.2 浏览器内直接引入](#22-浏览器内直接引入)
+- [3. 举例](#3-举例)
 
 
 ## 1. API
@@ -94,11 +92,11 @@ iframe的父页面使用的连接对象
 
 向iframe发送数据
 
-#### 1.2.11 connectionInstance.connected:boolean.
+#### 1.2.11 connectionInstance.connected:boolean
 
 是否是已连接状态
 
-#### 1.2.12 connectionInstance.isDestroyed:boolean.
+#### 1.2.12 connectionInstance.isDestroyed:boolean
 
 是否是已销毁状态
 
@@ -159,11 +157,11 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 向父页面发送消息
 
 
-#### 1.2.11 listenerInstance.connected:boolean.
+#### 1.2.11 listenerInstance.connected:boolean
 
 是否是已连接状态
 
-#### 1.2.12 listenerInstance.isDestroyed:boolean.
+#### 1.2.12 listenerInstance.isDestroyed:boolean
 
 是否是已销毁状态
 
@@ -172,9 +170,7 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 
 ### 2.1 module形式引入
 
-首先安装`cic`模块。
-
-`npm i -D cic`;
+首先安装 `npm i -S cic`;
 
 在父页面中引入`CicOutsideIframe`对象。
 
@@ -184,26 +180,51 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 
 `import CicInsideIframe from 'cic/dist/cici-inside-iframe.js'`
 
+**webpack建议用法**
+
+首先配置 `webpack.config.js`
+
+```js
+  resolve: {
+    alias: {
+      CicInsideIframe: path.resolve(__dirname,
+        '../node_modules/cic/dist/cic-inside-iframe.js'),
+      CicOutsideIframe: path.resolve(__dirname,
+        '../node_modules/cic/dist/cic-outside-iframe.js')
+    }
+  }
+```
+
+然后代码中可以直接使用
+
+```js
+import CicInsideIframe from 'CicInsideIframe';
+
+// or
+
+import CicOutsideIframe from 'CicOutsideIframe';
+```
+
 ---
 
 ### 2.2 浏览器内直接引入
 
 - 使用 window.CicInsideIframe 对象
-- https://unpkg.com/cic@1.0.5/dist/cic-inside-iframe.js
-- https://unpkg.com/cic@1.0.5/dist/cic-inside-iframe.min.js
+- https://unpkg.com/cic@1.0.6/dist/cic-inside-iframe.js
+- https://unpkg.com/cic@1.0.6/dist/cic-inside-iframe.min.js
 
 - 使用 window.CicOutsideIframe 对象
-- https://unpkg.com/cic@1.0.5/dist/cic-outside-iframe.js
-- https://unpkg.com/cic@1.0.5/dist/cic-outside-iframe.min.js
+- https://unpkg.com/cic@1.0.6/dist/cic-outside-iframe.js
+- https://unpkg.com/cic@1.0.6/dist/cic-outside-iframe.min.js
 
 ---
 
-### 2.3 举例说明
+## 3. 举例
 
 首先在`index.html`中签入需要通信的`内嵌页.html`。比如：
 
 ```
-<script type="text/javascript" src="https://unpkg.com/cic@1.0.5/dist/cic-outside-iframe.js"></script>
+<script type="text/javascript" src="https://unpkg.com/cic@1.0.6/dist/cic-outside-iframe.js"></script>
 
 <iframe id="iframeWindow" src="http://xxx.com/iframe.html"></iframe>
 
@@ -230,7 +251,7 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 `iframe.html`代码如下:
 
 ```
-<script type="text/javascript" src="https://unpkg.com/cic@1.0.5/dist/cic-inside-iframe.js"></script>
+<script type="text/javascript" src="https://unpkg.com/cic@1.0.6/dist/cic-inside-iframe.js"></script>
 <script type="text/javascript">
 
     window.onLoad = function() {

@@ -22,8 +22,8 @@ class Connection {
 
   destroy() {
     if (this.connected) {
-      this.disconnectIframe();
       this.onDisconnect(this._destroy);
+      this.disconnectIframe();
     } else {
       this._destroy();
     }
@@ -31,7 +31,6 @@ class Connection {
 
   _onBeforeUnload = () => {
     this.disconnectIframe();
-    this._destroy();
   }
 
   _destroy = () => {
@@ -171,7 +170,7 @@ class Connection {
     );
 
     this.timeoutId = setTimeout(() => {
-      log('尝试建立连接');
+      log('正在尝试建立连接');
       this.connecting = false;
       this.connectIframe();
     }, 1000);

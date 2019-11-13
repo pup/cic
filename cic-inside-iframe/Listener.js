@@ -10,14 +10,19 @@ class Listener {
   isDestroyed = false;
   sourceWindow = null;
   sourceOrigin = null;
+  started = false;
 
   start() {
     if (this.isDestroyed) {
       throw new Error('当前Listener已销毁');
     }
-    window.removeEventListener('message', this._messageHandler, false);
-    window.addEventListener('message', this._messageHandler, false);
-    window.addEventListener('beforeunload', this._onBeforeUnload, false);
+
+    if (!this.started) {
+      window.addEventListener('message', this._messageHandler, false);
+      window.addEventListener('beforeunload', this._onBeforeUnload, false);
+    }
+
+    this.started = true;
   }
 
   destroy() {
@@ -29,12 +34,18 @@ class Listener {
     }
   }
 
+  _onBeforeUnload = () => {
+    this.disconnectParent();
+  }
+
   _destroy = () => {
     this.isDestroyed = true;
+    this.started = false;
     this.disconnectListeners.length = 0;
     this.connectListeners.length = 0;
     this.messageListeners.length = 0;
     window.removeEventListener('message', this._messageHandler, false);
+    window.removeEventListener('beforeunload', this._onBeforeUnload, false);
   }
 
   _disconnectHandler() {

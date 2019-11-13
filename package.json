@@ -1,6 +1,6 @@
 {
   "name": "cic",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Safe cross-iframe-communication js framework",
   "directories": {
     "test": "test"

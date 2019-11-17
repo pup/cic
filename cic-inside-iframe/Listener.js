@@ -81,16 +81,18 @@ class Listener {
       if (msgType === 'pong_confirm') {
         this.connecting = false;
         this.connected = true;
-        this.connectListeners.forEach((fn) => {
-          fn(this);
-        });
-
         this.sourceWindow.postMessage({
             cicId,
             msgType: 'childReady',
           },
           this.sourceOrigin
         );
+
+        setTimeout(() => {
+          this.connectListeners.forEach((fn) => {
+            fn();
+          });
+        }, 0);
       } else if (msgType === 'message') {
         this.messageListeners.forEach((fn) => {
           fn(data);

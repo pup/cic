@@ -114,7 +114,6 @@ var _cicId = 0;
 var Connection =
 /*#__PURE__*/
 function () {
-  // 相当于一个链接标识符
   function Connection(iframeWindow) {
     var _this = this;
 
@@ -168,7 +167,7 @@ function () {
         }, '*');
       } else if (msgType == 'childReady' && _this.connected) {
         _this.connectListeners.forEach(function (fn) {
-          fn(_this);
+          fn();
         });
       } else if (msgType == 'disconnectFromChild' && _this.connected) {
         _this.iframeWindow.postMessage({
@@ -223,10 +222,10 @@ function () {
       if (this.isDestroyed) {
         throw new Error('当前Connection已销毁');
       } else {
-        this.connectListeners.push(fn);
-
         if (this.connected) {
           fn(this);
+        } else {
+          this.connectListeners.push(fn);
         }
       }
     }

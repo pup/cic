@@ -11,7 +11,7 @@ class Connection {
   connecting = false;
   isDestroyed = false;
   connected = false;
-  cicId = 'cic_id_' + ++_cicId; // 相当于一个链接标识符
+  cicId = 'cic_id_' + (++_cicId);
   timeoutId = null;
 
   constructor(iframeWindow) {
@@ -61,9 +61,10 @@ class Connection {
     if (this.isDestroyed) {
       throw new Error('当前Connection已销毁');
     } else {
-      this.connectListeners.push(fn);
       if (this.connected) {
         fn(this);
+      } else {
+        this.connectListeners.push(fn);
       }
     }
   }
@@ -125,7 +126,7 @@ class Connection {
       );
     } else if (msgType == 'childReady' && this.connected) {
       this.connectListeners.forEach((fn) => {
-        fn(this);
+        fn();
       });
     } else if (msgType == 'disconnectFromChild' && this.connected) {
       this.iframeWindow.postMessage({

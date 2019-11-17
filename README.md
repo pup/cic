@@ -11,8 +11,8 @@
     - [1.2.1 connectionInstance.destroy\(\);](#121-connectioninstancedestroy)
     - [1.2.2 connectionInstance.onDisconnect\(fn:\(connectionInstance:Connection\)=>void\):void;](#122-connectioninstanceondisconnectfnconnectioninstanceconnectionvoidvoid)
     - [1.2.3 connectionInstance.offDisconnect\(fn:\(connectionInstance:Connection\)=>void\):void;](#123-connectioninstanceoffdisconnectfnconnectioninstanceconnectionvoidvoid)
-    - [1.2.4 connectionInstance.onConnect\(fn:\(connectionInstance:Connection\)=>void\):void;](#124-connectioninstanceonconnectfnconnectioninstanceconnectionvoidvoid)
-    - [1.2.5 connectionInstance.offConnect\(fn:\(connectionInstance:Connection\)=>void\):void;](#125-connectioninstanceoffconnectfnconnectioninstanceconnectionvoidvoid)
+    - [1.2.4 connectionInstance.onConnect\(fn:\(\)=>void\):void;](#124-connectioninstanceonconnectfnvoidvoid)
+    - [1.2.5 connectionInstance.offConnect\(fn:\(\)=>void\):void;](#125-connectioninstanceoffconnectfnvoidvoid)
     - [1.2.6 connectionInstance.onMessage\(fn:\(msg: string\)=>void\):void;](#126-connectioninstanceonmessagefnmsg-stringvoidvoid)
     - [1.2.7 connectionInstance.offMessage\(fn:\(msg: string\)=>void\):void;](#127-connectioninstanceoffmessagefnmsg-stringvoidvoid)
     - [1.2.8 connectionInstance.connectIframe\(\):void;](#128-connectioninstanceconnectiframevoid)
@@ -27,8 +27,8 @@
     - [1.4.2 listenerInstance.destroy\(\):void;](#142-listenerinstancedestroyvoid)
     - [1.4.3 listenerInstance.onDisconnect\(fn:(listenerInstance:Listener\)=>void):void;](#143-listenerinstanceondisconnectfnlistenerinstancelistenervoidvoid)
     - [1.4.4 listenerInstance.offDisconnect\(fn:(listenerInstance:Listener\)=>void):void;](#144-listenerinstanceoffdisconnectfnlistenerinstancelistenervoidvoid)
-    - [1.4.5 listenerInstance.onConnect\(fn:(listenerInstance:Listener\)=>void):void;](#145-listenerinstanceonconnectfnlistenerinstancelistenervoidvoid)
-    - [1.4.6 listenerInstance.offConnect\(fn:(listenerInstance:Listener\)=>void):void;](#146-listenerinstanceoffconnectfnlistenerinstancelistenervoidvoid)
+    - [1.4.5 listenerInstance.onConnect\(fn:(\)=>void):void;](#145-listenerinstanceonconnectfnvoidvoid)
+    - [1.4.6 listenerInstance.offConnect\(fn:(\)=>void):void;](#146-listenerinstanceoffconnectfnvoidvoid)
     - [1.4.7 listenerInstance.onMessage\(fn:(data:any\)=>void):void;](#147-listenerinstanceonmessagefndataanyvoidvoid)
     - [1.4.8 listenerInstance.offMessage\(fn:(data:any\)=>void):void;](#148-listenerinstanceoffmessagefndataanyvoidvoid)
     - [1.4.9 listenerInstance.disconnectParent\(\):void;](#149-listenerinstancedisconnectparentvoid)
@@ -42,7 +42,10 @@
 
 ## 1. API
 
-说明：建立通信连接时由，由 `Connection` 实例主动发起（`instance.connectIframe()`）。每秒重试建立一次连接，直到`iframe`内部实例开始接收连接`listenerInstance.start()`
+说明：
+
+- 建立通信连接时由，由 `connectionInstance.connectIframe()` 实例主动发起
+- 每秒重试建立一次连接，直到`iframe`内部实例开始接收连接`listenerInstance.start()`
 
 ### 1.1 CicOutsideIframe 对象
 
@@ -66,11 +69,11 @@ iframe的父页面使用的连接对象
 
 移除 当前实例断开时的 回调方法
 
-#### 1.2.4 connectionInstance.onConnect(fn:(connectionInstance:Connection)=>void):void;
+#### 1.2.4 connectionInstance.onConnect(fn:()=>void):void;
 
 为 当前实例的连接事件 添加回调方法
 
-#### 1.2.5 connectionInstance.offConnect(fn:(connectionInstance:Connection)=>void):void;
+#### 1.2.5 connectionInstance.offConnect(fn:()=>void):void;
 
 移除 当前实例建立连接时的 回调方法
 
@@ -130,11 +133,11 @@ listener实例添加完针对 connect/disconnect/message 的事件后，开始�
 
 移除'disconnect'事件的回调方法
 
-#### 1.4.5 listenerInstance.onConnect(fn:(listenerInstance:Listener)=>void):void;
+#### 1.4.5 listenerInstance.onConnect(fn:()=>void):void;
 
 添加'connect'事件的回调方法
 
-#### 1.4.6 listenerInstance.offConnect(fn:(listenerInstance:Listener)=>void):void;
+#### 1.4.6 listenerInstance.offConnect(fn:()=>void):void;
 
 移除'connect'事件的回调方法
 

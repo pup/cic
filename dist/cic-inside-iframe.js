@@ -159,14 +159,16 @@ function () {
           _this.connecting = false;
           _this.connected = true;
 
-          _this.connectListeners.forEach(function (fn) {
-            fn(_this);
-          });
-
           _this.sourceWindow.postMessage({
             cicId: cicId,
             msgType: 'childReady'
           }, _this.sourceOrigin);
+
+          setTimeout(function () {
+            _this.connectListeners.forEach(function (fn) {
+              fn();
+            });
+          }, 0);
         } else if (msgType === 'message') {
           _this.messageListeners.forEach(function (fn) {
             fn(data);

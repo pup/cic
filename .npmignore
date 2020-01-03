@@ -1,10 +1,7 @@
 node_modules/
-backup/
 .DS_Store
 test/
 webpack-configs/
 .gitignore
 .eslintrc.js
 package-lock.json
-cic-inside-iframe/
-cic-outside-iframe/

@@ -1,68 +1,52 @@
-// https://www.npmjs.com/package/cross-env
-// https://www.npmjs.com/package/clean-webpack-plugin
+const fs = require('fs-extra');
 const path = require('path');
 const webpack = require('webpack');
-const fs = require('fs');
 const merge = require('webpack-merge');
-const createVariants = require('parallel-webpack')
-  .createVariants;
+const createVariants = require('parallel-webpack').createVariants;
 
-// console.log(`process.env.NODE_ENV = ${process.env.NODE_ENV}`);
-// console.log('distPath = ' + path.resolve(__dirname, 'dist'));
-// console.log('fs.realpathSync(process.cwd()) = ' + fs.realpathSync(process.cwd()));
+let outputPath = path.resolve(__dirname, '../dist');
+let contextPath = path.resolve(__dirname, '..');
 
-let rootConfig = {
-  context: path.resolve(__dirname, '..'),
+fs.emptyDirSync(outputPath);
+
+let baseConfig = {
+  context: contextPath,
+
   output: {
-    path: path.resolve(__dirname, '../dist'),
+    path: outputPath,
     globalObject: 'this',
     libraryTarget: 'umd'
   },
-  // optimization: {
-  //   runtimeChunk: 'single',
-  //   splitChunks: {
-  //     chunks: 'all'
-  //   }
-  // },
+
   module: {
     rules: [{
-        test: /\.m?js$/,
-        exclude: /(node_modules|bower_components)/,
+        test: /\.js$/,
+        exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
             cacheDirectory: true,
             presets: [
               ['@babel/preset-env', {
-                "modules": false
+                useBuiltIns: 'usage',
+                modules: false,
+                corejs: 3
               }]
-              // ['@babel/preset-env', {
-              //   targets: {
-              //     "chrome": "50",
-              //     "ie": "9"
-              //   },
-              //   useBuiltIns: 'usage',
-              //   corejs: 2
-              // }]
             ],
             plugins: [
               ["@babel/plugin-proposal-class-properties", {
                 "loose": true
               }],
-              "add-module-exports"
+              "add-module-exports",
+              "@babel/plugin-transform-modules-commonjs"
             ]
           },
         }
       },
       {
-        test: /\.m?js$/,
+        test: /\.js$/,
         exclude: /node_modules/,
-        loader: "eslint-loader",
-        options: {
-          // failOnError: true,
-          // emitWarning: true,a
-          emitError: true
-        }
+        loader: "eslint-loader"
       }
     ]
   },
@@ -73,39 +57,19 @@ let rootConfig = {
   ]
 };
 
-
-function createVariantsCallback({
-  baseInfo,
-  envVariants
-}, idx) {
-  return merge.smart(rootConfig, {
-    entry: baseInfo.entry,
+function createVariantsCallback({ envVariants }) {
+  return merge.smart(baseConfig, {
+    entry: './src/index.js',
     output: {
-      library: baseInfo.library,
-      filename: baseInfo.filename + (envVariants.optimization.minimize ?
+      library: 'Cic',
+      filename: 'cic' + (envVariants.optimization.minimize ?
         '.min.js' : '.js')
     }
   }, envVariants);
 }
 
-const variants = {
-  baseInfo: [{
-    entry: './cic-outside-iframe/index.js',
-    library: 'CicOutsideIframe',
-    filename: 'cic-outside-iframe'
-  }, {
-    entry: './cic-inside-iframe/index.js',
-    library: 'CicInsideIframe',
-    filename: 'cic-inside-iframe'
-  }]
-};
-
 const generateConfigs = function(envVariants) {
-  return createVariants(Object.assign({}, variants, {
-    envVariants
-  }), createVariantsCallback);
+  return createVariants({ envVariants }, createVariantsCallback);
 };
 
-module.exports = {
-  generateConfigs
-}
+module.exports = { generateConfigs }

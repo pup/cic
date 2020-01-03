@@ -5,11 +5,21 @@
   "directories": {
     "test": "test"
   },
+  "main": "dist/cic.js",
   "scripts": {
     "clean": "del-cli dist",
-    "build": "npm run clean; webpack --config webpack-configs/webpack.prod.js",
-    "dev": "npm run clean; webpack --config webpack-configs/webpack.dev.js"
+    "build": "webpack --config webpack-configs/webpack.prod.js",
+    "dev": "webpack --config webpack-configs/webpack.dev.js",
+    "test": "node test/server.js"
   },
+  "browserslist": [
+    "ChromeAndroid 30",
+    "Chrome 45",
+    "IE 8",
+    "> 2%",
+    "not dead",
+    "iOS 7"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pup/cic.git"
@@ -29,6 +39,7 @@
   "devDependencies": {
     "@babel/core": "^7.6.4",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-transform-modules-commonjs": "^7.7.5",
     "@babel/preset-env": "^7.6.3",
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
@@ -36,10 +47,14 @@
     "del-cli": "^3.0.0",
     "eslint": "^6.5.1",
     "eslint-loader": "^3.0.2",
+    "fs-extra": "^8.1.0",
     "parallel-webpack": "^2.4.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.8.2",
     "webpack-merge": "^4.2.2"
+  },
+  "peerDependencies": {
+    "core-js": "^3.6.1"
   }
 }

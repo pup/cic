@@ -11,28 +11,33 @@
     </style>
 </head>
 <body>
-<iframe id="iframeWindow" src="./webEmbededInIframe.html"></iframe>
-<script type="text/javascript" src="./cic-outside-iframe.js"></script>
+<iframe id="iframeWindow" src="./inside.html"></iframe>
+<script type="text/javascript" src="./cic.js"></script>
 <script type="text/javascript">
-    var connection = window.CicOutsideIframe.createConnection(document.getElementById('iframeWindow'));
+    var connection = window.Cic.createConnection();
 
     connection.onMessage(function(dataFromIframe) {
         console.log('< parent: dataFromIframe =');
         console.log(dataFromIframe);
         if (dataFromIframe.text === 'world') {
-            console.log('< parent: 主动发起断开连接');
-            connection.disconnectIframe();
+            //console.log('< 外层窗口 主动发起断开连接');
+            //connection.disconnect();
         }
     });
 
     connection.onConnect(function() {
-        connection.postMessageToIframe({
+        connection.sendMsg({
             text: 'hello'
         })
     });
 
+    connection.onDisconnect(function() {
+        console.log('内部断开链接，可能是内部网址发生变化。');
+        
+    });
+
     // 发起连接
-    connection.connectIframe();
+    connection.connect(document.getElementById('iframeWindow'));
 </script>
 </body>
 </html>

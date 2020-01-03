@@ -5,10 +5,11 @@
 
 ### 索引
 
-- [浏览器兼容性]()
-- [使用方法]()
-- [API]()
-- [示例代码]()
+- [浏览器兼容性](#浏览器兼容性)
+- [使用方法](#使用方法)
+- [库引入方法](#引入方法)
+- [API](#api)
+- [示例代码](#示例代码)
 
 ##  浏览器兼容性
 
@@ -21,14 +22,14 @@
 - 注意：1. **`onConnection`**在回调执行后，才可以`connection.sendMsg(msg)`进行消息传输； 2. 在执行`connection.sendMsg(msg)`前判断`connection.connected为true`
 - 如果iframe内部窗口已和parent建立通信连接，那么iframe窗口内部页面刷新或者跳转到新的url地址之前 都会出发`disconnect`事件
 
-## 引入方法
+## 库引入方法
 
 引入库代库后执行一个工厂方法，生产一个`Connection`类的实例
 
 ### 第一种 直接全局引入`cic.js`文件
 
 ```
-<script src="https://unpkg.com/cic@2.0.1/dist/cic.js" type="text/script"></script>
+<script src="https://unpkg.com/cic@2.0.2/dist/cic.js" type="text/script"></script>
 
 <script type="text/script">
   var connection = window.Cic.createConnection();
@@ -104,7 +105,7 @@ var connection = createConnection();
 
 ```
 <iframe id="iframeWindow" src="./inside.html"></iframe>
-<script type="text/javascript" src="https://unpkg.com/cic@2.0.1/dist/cic.js"></script>
+<script type="text/javascript" src="https://unpkg.com/cic@2.0.2/dist/cic.js"></script>
 <script type="text/javascript">
     var connection = window.Cic.createConnection();
 
@@ -137,7 +138,7 @@ var connection = createConnection();
 `iframe`窗口代码，文件名`inside.html`
 
 ```
-  <script type="text/javascript" src="https://unpkg.com/cic@2.0.1/dist/cic.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/cic@2.0.2/dist/cic.js"></script>
   <script type="text/javascript">
   // 用setTimeout故意延迟几秒，等待重试连接
   setTimeout(function() {

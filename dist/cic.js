@@ -1306,6 +1306,10 @@ function removeMsgListener(msgType, callback) {
   }
 }
 
+function postMessage(target, msg) {
+  target.postMessage(JSON.stringify(msg), '*');
+}
+
 function Connection(source) {
   this.connected = false;
   this.destroyed = false;
@@ -1327,16 +1331,21 @@ function Connection(source) {
 Connection.prototype._onMessage = function (evt) {
   var _this = this;
 
-  if (!evt.data || !evt.data.cicId) {
+  if (!evt.data) {
+    return;
+  }
+
+  var evtData = JSON.parse(evt.data);
+
+  if (!evtData.cicId) {
     return;
   }
 
   var origin = evt.origin,
-      source = evt.source,
-      _evt$data = evt.data,
-      cicId = _evt$data.cicId,
-      msgType = _evt$data.msgType,
-      data = _evt$data.data;
+      source = evt.source;
+  var cicId = evtData.cicId,
+      msgType = evtData.msgType,
+      data = evtData.data;
 
   if (msgType == 'ping') {
     if (this._cicId || this._connecting || this.connected) {
@@ -1347,20 +1356,20 @@ Connection.prototype._onMessage = function (evt) {
     this._connecting = true;
     this._source = source;
     this._origin = origin;
-    source.postMessage({
+    postMessage(source, {
       cicId: cicId,
       msgType: 'pong'
-    }, '*');
+    });
   } else if (msgType == 'pong' && this._connecting && !this.connected && this._cicId == cicId) {
     clearTimeout(this._timeoutId);
     this._source = source;
     this._origin = origin;
     this.connected = true;
     this._connecting = false;
-    source.postMessage({
+    postMessage(source, {
       cicId: cicId,
       msgType: 'pong_confirm'
-    }, '*');
+    });
     setTimeout(function () {
       _newArrowCheck(this, _this);
 
@@ -1446,10 +1455,13 @@ Connection.prototype.disconnect = function () {
   clearTimeout(this._timeoutId);
   this.connected = false;
   this._connecting = false;
-  this._source && this._source.postMessage({
-    cicId: this._cicId,
-    msgType: 'disconnect'
-  }, '*');
+
+  if (this._source) {
+    postMessage(this._source, {
+      cicId: this._cicId,
+      msgType: 'disconnect'
+    });
+  }
 };
 
 Connection.prototype.destroy = function () {
@@ -1486,11 +1498,10 @@ Connection.prototype.connect = function (domWindow) {
   if (this._source) {
     this._cicId = 'cic_' + Date.now();
     this._connecting = true;
-
-    this._source.postMessage({
+    postMessage(this._source, {
       cicId: this._cicId,
       msgType: 'ping'
-    }, '*');
+    });
   } else {
     throw new Error('参数对象 domWindow 不可用，无法发送消息到该窗口对象。postMessage方法不存在');
   }
@@ -1509,11 +1520,11 @@ Connection.prototype.sendMsg = function (data) {
     throw new Error('连接尚未建立，请添加 onConnect 回调，确定建立连接后才可发送消息');
   }
 
-  this._source.postMessage({
+  postMessage(this._source, {
     cicId: this._cicId,
     msgType: 'message',
     data: data
-  }, '*');
+  });
 };
 
 module.exports = Connection;

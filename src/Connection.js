@@ -212,7 +212,7 @@ Connection.prototype.connect = function(domWindow) {
   }
 
   if (this._source) {
-    this._cicId = 'cic_' + new Date().getTime();
+    this._cicId = 'cic_' + Date.now();
     this._connecting = true;
     this._source.postMessage({
         cicId: this._cicId,

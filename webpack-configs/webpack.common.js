@@ -28,9 +28,9 @@ let baseConfig = {
             cacheDirectory: true,
             presets: [
               ['@babel/preset-env', {
-                useBuiltIns: 'usage',
                 modules: false,
-                corejs: 3
+                spec: true,
+                useBuiltIns: false
               }]
             ],
             plugins: [

@@ -3,40 +3,51 @@
 
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1" />
   <title></title>
 </head>
 
 <body>
+  <h1>Inside</h1>
   <script type="text/javascript" src="./cic.js"></script>
   <script type="text/javascript">
-  // 用setTimeout故意延迟几秒，等待重试连接
-  setTimeout(function() {
-    var connection = window.Cic.createConnection();
+  function isString(input) {
+    return Object.prototype.toString.call(input) == '[object String]';
+  }
 
-    connection.onConnect(function() {
-      console.log('> 连接已建立');
-    });
+  function log(msg) {
+    console && console.log && console.log('inside: ' + isString(msg) ?
+      msg : JSON.stringify(
+        msg));
+  }
 
-    connection.onMessage(function(dataFromParent) {
-      console.log('> dataFromParent =');
-      console.log(dataFromParent);
+  var connection = window.Cic.createConnection('inside');
 
-      if (dataFromParent.text === 'hello') {
-        connection.sendMsg({
-          text: 'world'
-        });
-      }
-    });
+  connection.onConnect(function() {
+    log('连接已建立');
+  });
 
-    connection.onDisconnect(function() {
-      console.log('> iframe 收到断开链接的请求。然后执行链接销毁功能');
-      connection.destroy();
-    });
-  }, 1000);
+  connection.onMessage(function(dataFromParent) {
+    log('dataFromParent =');
+    log(dataFromParent);
 
-  setTimeout(function() {
+    if (dataFromParent.text === 'hello') {
+      connection.sendMsg({
+        text: 'world'
+      });
+    }
+  });
+
+  connection.onDisconnect(function() {
+    log(' 收到断开链接的请求。然后执行链接销毁功能');
+    connection.destroy();
+  });
+
+  window.setTimeout(function() {
+    log('开始跳转到百度:::>');
     location.href = "http://localhost";
-  }, 3000);
+  }, 6000);
   </script>
 </body>
 

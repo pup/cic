@@ -9,19 +9,8 @@ const fs = require('fs');
 //   extended: true
 // }));
 
-app.use(express.static(path.resolve(__dirname,'public'), {
-  'maxAge': 0,
-  'cacheControl': false,
-  'lastModified': false,
-  'etag': false
-}));
-
-app.use(express.static(path.resolve(__dirname,'../dist'), {
-  'maxAge': 0,
-  'cacheControl': false,
-  'lastModified': false,
-  'etag': false
-}));
+app.use(express.static(path.resolve(__dirname,'public')));
+app.use(express.static(path.resolve(__dirname,'../dist')));
 
 // console.log(__dirname+'/brew.txt');
 

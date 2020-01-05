@@ -1,6 +1,18 @@
-let log = function(msg) {
-  console && console.log && console.log('< ' + msg);
-};
+function isString(input) {
+  return Object.prototype.toString.call(input) == '[object String]';
+}
+
+function log(msg, noneStr) {
+  // console && console.log && console.log(noneStr + ' ::: ' + (isString(msg) ?
+  //   msg :
+  //   JSON.stringify(msg)));
+}
+
+function log2(msg, noneStr) {
+  console && console.log && console.log(noneStr + ' ::: ' + (isString(msg) ?
+    msg :
+    JSON.stringify(msg)));
+}
 
 function addMsgListener(msgType, callback) {
   if ('addEventListener' in document) {
@@ -22,18 +34,24 @@ function postMessage(target, msg) {
   target.postMessage(JSON.stringify(msg), '*');
 }
 
-function Connection(source) {
+function clear(timeoutId, noneStr) {
+  log(`>>> clear timeoutId = ${timeoutId}`, noneStr);
+  window.clearTimeout(timeoutId);
+}
+
+let lastConnectTime = 0;
+
+function Connection(noneStr) {
   this.connected = false;
   this.destroyed = false;
 
+  this._noneStr = noneStr;
   this._disconnectListeners = [];
   this._connectListeners = [];
   this._messageListeners = [];
   this._connecting = false;
-  this._timeoutId = null;
   this._cicId = null;
-  this._source = source || null;
-  this._origin = '*';
+  this._source = null;
   this._timeoutId = null;
 
   this.__onMessage = this._onMessage.bind(this);
@@ -50,11 +68,13 @@ Connection.prototype._onMessage = function(evt) {
 
   let evtData = JSON.parse(evt.data);
 
+  log(evtData, this._noneStr);
+
   if (!evtData.cicId) {
     return;
   }
 
-  let { origin, source } = evt;
+  let { source } = evt;
   let { cicId, msgType, data } = evtData;
 
   if (msgType == 'ping') {
@@ -62,10 +82,11 @@ Connection.prototype._onMessage = function(evt) {
       return;
     }
 
+    log('收到ping信号', this._noneStr);
+
     this._cicId = cicId;
     this._connecting = true;
     this._source = source;
-    this._origin = origin;
 
     postMessage(source, {
       cicId,
@@ -77,11 +98,13 @@ Connection.prototype._onMessage = function(evt) {
     !this.connected &&
     this._cicId == cicId
   ) {
-    clearTimeout(this._timeoutId);
-    this._source = source;
-    this._origin = origin;
+    log('收到pong信号', this._noneStr);
+
+    clear(this._timeoutId, this._noneStr);
+    // this._timeoutId = null;
     this.connected = true;
     this._connecting = false;
+    this._source = source;
 
     postMessage(source, {
       cicId,
@@ -98,8 +121,10 @@ Connection.prototype._onMessage = function(evt) {
     this._connecting &&
     cicId == this._cicId
   ) {
-    this._connecting = false;
+    log('收到pong_confirm信号', this._noneStr);
+
     this.connected = true;
+    this._connecting = false;
 
     setTimeout(() => {
       this._connectListeners.forEach(function(fn) {
@@ -110,6 +135,9 @@ Connection.prototype._onMessage = function(evt) {
     msgType == 'disconnect' &&
     cicId == this._cicId
   ) {
+    clear(this._timeoutId, this._noneStr);
+
+    log('>>> 收到disconnect信号', this._noneStr);
     this.connected = false;
     this._connecting = false;
 
@@ -121,6 +149,7 @@ Connection.prototype._onMessage = function(evt) {
     this.connected &&
     cicId == this._cicId
   ) {
+    log('收到message信号', this._noneStr);
     this._messageListeners.forEach(function(fn) {
       fn(data);
     });
@@ -133,8 +162,9 @@ Connection.prototype.onConnect = function(fn) {
   }
 
   this._connectListeners.push(fn);
+
   if (this.connected) {
-    fn(this);
+    fn();
   }
 };
 
@@ -173,30 +203,33 @@ Connection.prototype.offMessage = function(fn) {
 };
 
 Connection.prototype._onBeforeUnload = function() {
-  this.disconnect();
+  log('beforeunload', this._noneStr);
+  this.destroy();
 };
 
 Connection.prototype.disconnect = function() {
-  clearTimeout(this._timeoutId);
-  this.connected = false;
-  this._connecting = false;
+  clear(this._timeoutId, this._noneStr);
+  // this._timeoutId = null;
+
   if (this._source) {
     postMessage(this._source, {
       cicId: this._cicId,
       msgType: 'disconnect'
     });
+
+    this.connected = false;
+    this._connecting = false;
   }
 };
 
 Connection.prototype.destroy = function() {
   this.disconnect();
+  this.destroyed = true;
   this._disconnectListeners.length = 0;
   this._connectListeners.length = 0;
   this._messageListeners.length = 0;
-  this.destroyed = true;
   this._cicId = null;
   this._source = null;
-  this._origin = null;
   this._timeoutId = null;
 
   removeMsgListener('message', this.__onMessage);
@@ -204,13 +237,21 @@ Connection.prototype.destroy = function() {
 };
 
 Connection.prototype.connect = function(domWindow) {
+  log('duration----- ' + (Date.now() - lastConnectTime), this._noneStr);
   if (!domWindow) {
     throw new Error('connect方法需要传入参数domWindow');
   }
 
   if (this.connected) {
-    throw new Error('当前Connection对象已建立连接');
+    log('当前Connection对象已建立连接', this._noneStr);
+    return;
   }
+
+  if (this._connecting) {
+    return;
+  }
+
+  lastConnectTime = Date.now();
 
   if (domWindow.postMessage) {
     this._source = domWindow;
@@ -218,24 +259,29 @@ Connection.prototype.connect = function(domWindow) {
     this._source = domWindow.contentWindow;
   }
 
-  if (this._source) {
-    this._cicId = 'cic_' + Date.now();
-    this._connecting = true;
-
-
-    postMessage(this._source, {
-      cicId: this._cicId,
-      msgType: 'ping'
-    });
-  } else {
+  if (!this._source) {
     throw new Error('参数对象 domWindow 不可用，无法发送消息到该窗口对象。postMessage方法不存在');
   }
 
-  this._timeoutId = setTimeout(() => {
-    log('正在尝试建立连接');
+  this._cicId = 'cic_' + Date.now();
+  this._connecting = true;
+
+  log('发送ping命令', this._noneStr);
+
+  postMessage(this._source, {
+    cicId: this._cicId,
+    msgType: 'ping'
+  });
+
+  clear(this._timeoutId, this._noneStr);
+
+  this._timeoutId = window.setTimeout(() => {
+    log2('正在尝试建立连接, this._cicId = ', this._noneStr);
     this._connecting = false;
     this.connect(domWindow);
-  }, 1000);
+  }, 2000);
+
+  log(`<<< created this._timeoutId = ${this._timeoutId}`, this._noneStr);
 };
 
 Connection.prototype.sendMsg = function(data) {

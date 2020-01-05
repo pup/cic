@@ -1,43 +1,59 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8">
-    <title>测试CIC通信</title>
-    <style type="text/css">
-        iframe {
-            width: 800px;
-            height: 500px;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1" />
+  <title>测试CIC通信</title>
+  <style type="text/css">
+  iframe {
+    width: 300px;
+    height: 200px;
+  }
+  </style>
 </head>
+
 <body>
-<iframe id="iframeWindow" src="./inside.html"></iframe>
-<script type="text/javascript" src="./cic.js"></script>
-<script type="text/javascript">
-    var connection = window.Cic.createConnection();
+  <iframe id="iframeWindow" src="http://b.com:8080/inside.html"></iframe>
+  <script type="text/javascript" src="./cic.js"></script>
+  <script type="text/javascript">
+  function isString(input) {
+    return Object.prototype.toString.call(input) == '[object String]';
+  }
 
-    connection.onMessage(function(dataFromIframe) {
-        console.log('< parent: dataFromIframe =');
-        console.log(dataFromIframe);
-        if (dataFromIframe.text === 'world') {
-            //console.log('< 外层窗口 主动发起断开连接');
-            //connection.disconnect();
-        }
-    });
+  function log(msg) {
+    console && console.log && console.log('outside: ' + isString(msg) ?
+      msg : JSON.stringify(
+        msg));
+  }
 
-    connection.onConnect(function() {
-        connection.sendMsg({
-            text: 'hello'
-        })
-    });
+  var connection = window.Cic.createConnection('parent');
 
-    connection.onDisconnect(function() {
-        console.log('内部断开链接，可能是内部网址发生变化。');
-        
-    });
+  connection.onMessage(function(dataFromInside) {
+    log('parent dataFromInside =');
+    log(dataFromInside);
+    if (dataFromInside.text === 'world') {
+      //console.log('< 外层窗口 主动发起断开连接');
+      //connection.disconnect();
+    }
+  });
 
-    // 发起连接
+  connection.onConnect(function() {
+    connection.sendMsg({
+      text: 'hello'
+    })
+  });
+
+  connection.onDisconnect(function() {
+    log('内部断开链接，可能是内部网址发生变化。');
+  });
+
+  setTimeout(function() {
+  // 发起连接
     connection.connect(document.getElementById('iframeWindow'));
-</script>
+  }, 500);
+  </script>
 </body>
+
 </html>

@@ -29,7 +29,7 @@
 ### 第一种 直接全局引入`cic.js`文件
 
 ```
-<script src="https://unpkg.com/cic@2.0.2/dist/cic.js" type="text/script"></script>
+<script src="https://unpkg.com/cic@2.0.4/dist/cic.js" type="text/script"></script>
 
 <script type="text/script">
   var connection = window.Cic.createConnection();
@@ -105,7 +105,7 @@ var connection = createConnection();
 
 ```
 <iframe id="iframeWindow" src="./inside.html"></iframe>
-<script type="text/javascript" src="https://unpkg.com/cic@2.0.2/dist/cic.js"></script>
+<script type="text/javascript" src="https://unpkg.com/cic@2.0.4/dist/cic.js"></script>
 <script type="text/javascript">
     var connection = window.Cic.createConnection();
 
@@ -138,7 +138,7 @@ var connection = createConnection();
 `iframe`窗口代码，文件名`inside.html`
 
 ```
-  <script type="text/javascript" src="https://unpkg.com/cic@2.0.2/dist/cic.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/cic@2.0.4/dist/cic.js"></script>
   <script type="text/javascript">
   // 用setTimeout故意延迟几秒，等待重试连接
   setTimeout(function() {

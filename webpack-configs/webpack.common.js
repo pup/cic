@@ -1,4 +1,5 @@
-const fs = require('fs-extra');
+const fsExtra = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const merge = require('webpack-merge');
@@ -7,7 +8,12 @@ const createVariants = require('parallel-webpack').createVariants;
 let outputPath = path.resolve(__dirname, '../dist');
 let contextPath = path.resolve(__dirname, '..');
 
-fs.emptyDirSync(outputPath);
+fsExtra.emptyDirSync(outputPath);
+
+let bannerPath = require.resolve('es5-polyfill');
+let banner = fs.readFileSync(bannerPath, {
+  encoding: 'utf8'
+});
 
 let baseConfig = {
   context: contextPath,
@@ -53,7 +59,12 @@ let baseConfig = {
 
   plugins: [
     new webpack.ProgressPlugin(),
-    new webpack.HashedModuleIdsPlugin()
+    new webpack.HashedModuleIdsPlugin(),
+    new webpack.BannerPlugin({
+      banner: banner,
+      raw: true,
+      entryOnly: true
+    })
   ]
 };
 

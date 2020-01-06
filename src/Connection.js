@@ -271,7 +271,7 @@ Connection.prototype.connect = function(domWindow) {
   log('发送ping命令', this._noneStr);
 
   // In IE, postmessage will block the process, so need setTimeout
-  window.setTimeout(function() {
+  window.setTimeout(() => {
     postMessage(this._source, {
       cicId: this._cicId,
       msgType: 'ping'

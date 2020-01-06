@@ -1,4 +1,4 @@
-import "es5-polyfill";
+// import "es5-polyfill";
 
 let Connection = require('./Connection.js');
 

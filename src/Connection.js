@@ -270,10 +270,13 @@ Connection.prototype.connect = function(domWindow) {
 
   log('发送ping命令', this._noneStr);
 
-  postMessage(this._source, {
-    cicId: this._cicId,
-    msgType: 'ping'
-  });
+  // In IE, postmessage will block the process, so need setTimeout
+  window.setTimeout(function() {
+    postMessage(this._source, {
+      cicId: this._cicId,
+      msgType: 'ping'
+    });
+  }, 0)
 
   clear(this._timeoutId, this._noneStr);
 

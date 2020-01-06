@@ -1533,11 +1533,14 @@ Connection.prototype.connect = function (domWindow) {
 
   this._cicId = 'cic_' + Date.now();
   this._connecting = true;
-  log('发送ping命令', this._noneStr);
-  postMessage(this._source, {
-    cicId: this._cicId,
-    msgType: 'ping'
-  });
+  log('发送ping命令', this._noneStr); // In IE, postmessage will block the process, so need setTimeout
+
+  window.setTimeout(function () {
+    postMessage(this._source, {
+      cicId: this._cicId,
+      msgType: 'ping'
+    });
+  }, 0);
   clear(this._timeoutId, this._noneStr);
   this._timeoutId = window.setTimeout(function () {
     _newArrowCheck(this, _this2);

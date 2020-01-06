@@ -22,17 +22,17 @@
     return Object.prototype.toString.call(input) == '[object String]';
   }
 
-  function log(msg) {
-    console && console.log && console.log('outside: ' + isString(msg) ?
-      msg : JSON.stringify(
-        msg));
+  function log(msg, noneStr) {
+    console && console.log && console.log(noneStr + ' ::: ' + (isString(msg) ?
+    msg :
+    JSON.stringify(msg)));
   }
 
   var connection = window.Cic.createConnection('parent');
 
   connection.onMessage(function(dataFromInside) {
-    log('parent dataFromInside =');
-    log(dataFromInside);
+    // log('parent dataFromInside =');
+    // log(dataFromInside);
     if (dataFromInside.text === 'world') {
       //console.log('< 外层窗口 主动发起断开连接');
       //connection.disconnect();
@@ -46,7 +46,7 @@
   });
 
   connection.onDisconnect(function() {
-    log('内部断开链接，可能是内部网址发生变化。');
+    log('内部断开链接，可能是内部网址发生变化。', 'parent');
   });
 
   setTimeout(function() {

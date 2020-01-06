@@ -35,7 +35,7 @@ function postMessage(target, msg) {
 }
 
 function clear(timeoutId, noneStr) {
-  log(`>>> clear timeoutId = ${timeoutId}`, noneStr);
+  log(`clear timeoutId = ${timeoutId}`, noneStr);
   window.clearTimeout(timeoutId);
 }
 
@@ -98,15 +98,14 @@ Connection.prototype._onMessage = function(evt) {
     !this.connected &&
     this._cicId == cicId
   ) {
+    this._connecting = false;
+    this.connected = true;
     log('收到pong信号', this._noneStr);
 
     clear(this._timeoutId, this._noneStr);
-    // this._timeoutId = null;
-    this.connected = true;
-    this._connecting = false;
-    this._source = source;
+    this._timeoutId = null;
 
-    postMessage(source, {
+    postMessage(this._source, {
       cicId,
       msgType: 'pong_confirm'
     });
@@ -135,9 +134,9 @@ Connection.prototype._onMessage = function(evt) {
     msgType == 'disconnect' &&
     cicId == this._cicId
   ) {
-    clear(this._timeoutId, this._noneStr);
+    log('收到disconnect信号', this._noneStr);
 
-    log('>>> 收到disconnect信号', this._noneStr);
+    clear(this._timeoutId, this._noneStr);
     this.connected = false;
     this._connecting = false;
 
@@ -209,7 +208,7 @@ Connection.prototype._onBeforeUnload = function() {
 
 Connection.prototype.disconnect = function() {
   clear(this._timeoutId, this._noneStr);
-  // this._timeoutId = null;
+  this._timeoutId = null;
 
   if (this._source) {
     postMessage(this._source, {
@@ -224,6 +223,7 @@ Connection.prototype.disconnect = function() {
 
 Connection.prototype.destroy = function() {
   this.disconnect();
+
   this.destroyed = true;
   this._disconnectListeners.length = 0;
   this._connectListeners.length = 0;
@@ -237,17 +237,19 @@ Connection.prototype.destroy = function() {
 };
 
 Connection.prototype.connect = function(domWindow) {
-  log('duration----- ' + (Date.now() - lastConnectTime), this._noneStr);
+  log('----- duration = ' + (Date.now() - lastConnectTime), this._noneStr);
+
   if (!domWindow) {
     throw new Error('connect方法需要传入参数domWindow');
   }
 
   if (this.connected) {
-    log('当前Connection对象已建立连接', this._noneStr);
+    log2('---> 当前Connection对象已建立连接', this._noneStr);
     return;
   }
 
   if (this._connecting) {
+    log2('---> 当前Connection对象正在建立连接中');
     return;
   }
 
@@ -260,7 +262,7 @@ Connection.prototype.connect = function(domWindow) {
   }
 
   if (!this._source) {
-    throw new Error('参数对象 domWindow 不可用，无法发送消息到该窗口对象。postMessage方法不存在');
+    throw new Error('参数对象 domWindow 不可用，postMessage方法不存在');
   }
 
   this._cicId = 'cic_' + Date.now();

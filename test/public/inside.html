@@ -16,22 +16,19 @@
     return Object.prototype.toString.call(input) == '[object String]';
   }
 
-  function log(msg) {
-    console && console.log && console.log('inside: ' + isString(msg) ?
-      msg : JSON.stringify(
-        msg));
+  function log(msg, noneStr) {
+    console && console.log && console.log(noneStr + ' ::: ' + (isString(msg) ?
+    msg :
+    JSON.stringify(msg)));
   }
 
   var connection = window.Cic.createConnection('inside');
 
   connection.onConnect(function() {
-    log('连接已建立');
+    log('连接已建立,执行onConnect回调', 'inside');
   });
 
   connection.onMessage(function(dataFromParent) {
-    log('dataFromParent =');
-    log(dataFromParent);
-
     if (dataFromParent.text === 'hello') {
       connection.sendMsg({
         text: 'world'
@@ -40,12 +37,12 @@
   });
 
   connection.onDisconnect(function() {
-    log(' 收到断开链接的请求。然后执行链接销毁功能');
+    log('收到断开链接的请求。然后执行链接销毁功能', 'inside');
     connection.destroy();
   });
 
   window.setTimeout(function() {
-    log('开始跳转到百度:::>');
+    log('开始跳转到百度:::>', 'inside');
     location.href = "http://localhost";
   }, 6000);
   </script>

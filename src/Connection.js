@@ -23,10 +23,10 @@ function addMsgListener(msgType, callback) {
 }
 
 function removeMsgListener(msgType, callback) {
-  if ('addEventListener' in document) {
+  if ('removeEventListener' in document) {
     window.removeEventListener(msgType, callback, false);
-  } else if ('attachEvent' in document) {
-    window.dettachEvent(`on${msgType}`, callback);
+  } else if ('detachEvent' in document) {
+    window.detachEvent(`on${msgType}`, callback);
   }
 }
 

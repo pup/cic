@@ -2,11 +2,11 @@ function isString(input) {
   return Object.prototype.toString.call(input) == '[object String]';
 }
 
-function log(msg, noneStr) {
-  // console && console.log && console.log(noneStr + ' ::: ' + (isString(msg) ?
-  //   msg :
-  //   JSON.stringify(msg)));
-}
+// function log(msg, noneStr) {
+//   console && console.log && console.log(noneStr + ' ::: ' + (isString(msg) ?
+//     msg :
+//     JSON.stringify(msg)));
+// }
 
 function log2(msg, noneStr) {
   console && console.log && console.log(noneStr + ' ::: ' + (isString(msg) ?
@@ -35,7 +35,6 @@ function postMessage(target, msg) {
 }
 
 function clear(timeoutId, noneStr) {
-  log(`clear timeoutId = ${timeoutId}`, noneStr);
   window.clearTimeout(timeoutId);
 }
 
@@ -68,8 +67,6 @@ Connection.prototype._onMessage = function(evt) {
 
   let evtData = JSON.parse(evt.data);
 
-  log(evtData, this._noneStr);
-
   if (!evtData.cicId) {
     return;
   }
@@ -81,8 +78,6 @@ Connection.prototype._onMessage = function(evt) {
     if (this._cicId || this._connecting || this.connected) {
       return;
     }
-
-    log('收到ping信号', this._noneStr);
 
     this._cicId = cicId;
     this._connecting = true;
@@ -100,7 +95,6 @@ Connection.prototype._onMessage = function(evt) {
   ) {
     this._connecting = false;
     this.connected = true;
-    log('收到pong信号', this._noneStr);
 
     clear(this._timeoutId, this._noneStr);
     this._timeoutId = null;
@@ -120,8 +114,6 @@ Connection.prototype._onMessage = function(evt) {
     this._connecting &&
     cicId == this._cicId
   ) {
-    log('收到pong_confirm信号', this._noneStr);
-
     this.connected = true;
     this._connecting = false;
 
@@ -134,11 +126,12 @@ Connection.prototype._onMessage = function(evt) {
     msgType == 'disconnect' &&
     cicId == this._cicId
   ) {
-    log('收到disconnect信号', this._noneStr);
-
     clear(this._timeoutId, this._noneStr);
+    this._timeoutId = null;
     this.connected = false;
     this._connecting = false;
+    this._cicId = null;
+    this._source = null;
 
     this._disconnectListeners.forEach(function(fn) {
       fn();
@@ -148,7 +141,6 @@ Connection.prototype._onMessage = function(evt) {
     this.connected &&
     cicId == this._cicId
   ) {
-    log('收到message信号', this._noneStr);
     this._messageListeners.forEach(function(fn) {
       fn(data);
     });
@@ -202,7 +194,6 @@ Connection.prototype.offMessage = function(fn) {
 };
 
 Connection.prototype._onBeforeUnload = function() {
-  log('beforeunload', this._noneStr);
   this.destroy();
 };
 
@@ -237,8 +228,6 @@ Connection.prototype.destroy = function() {
 };
 
 Connection.prototype.connect = function(domWindow) {
-  log('----- duration = ' + (Date.now() - lastConnectTime), this._noneStr);
-
   if (!domWindow) {
     throw new Error('connect方法需要传入参数domWindow');
   }
@@ -249,8 +238,12 @@ Connection.prototype.connect = function(domWindow) {
   }
 
   if (this._connecting) {
-    log2('---> 当前Connection对象正在建立连接中');
+    log2('---> 当前Connection对象正在建立连接中', this._noneStr);
     return;
+  }
+
+  if (this.destroyed) {
+    throw new Error('---> 当前Connection实例已销毁，不能发起连接请求。');
   }
 
   lastConnectTime = Date.now();
@@ -268,8 +261,6 @@ Connection.prototype.connect = function(domWindow) {
   this._cicId = 'cic_' + Date.now();
   this._connecting = true;
 
-  log('发送ping命令', this._noneStr);
-
   // In IE, postmessage will block the process, so need setTimeout
   window.setTimeout(() => {
     postMessage(this._source, {
@@ -281,12 +272,9 @@ Connection.prototype.connect = function(domWindow) {
   clear(this._timeoutId, this._noneStr);
 
   this._timeoutId = window.setTimeout(() => {
-    log2('正在尝试建立连接, this._cicId = ', this._noneStr);
     this._connecting = false;
     this.connect(domWindow);
   }, 2000);
-
-  log(`<<< created this._timeoutId = ${this._timeoutId}`, this._noneStr);
 };
 
 Connection.prototype.sendMsg = function(data) {

@@ -2,7 +2,6 @@
 
 简单易用的iframe通信库
 
-
 ### 索引
 
 - [浏览器兼容性](#浏览器兼容性)
@@ -17,10 +16,15 @@
 
 ## 使用方法
 
-- 在`parent`和`iframe`中都使用`var connection = createConnection():Connection`创建和初始化通信
-- 为`connection`实例添加监听方法，包括：`onMessage`,`onConnect`,`onDisconnect`
-- 注意：1. **`onConnection`**在回调执行后，才可以`connection.sendMsg(msg)`进行消息传输； 2. 在执行`connection.sendMsg(msg)`前判断`connection.connected为true`
-- 如果iframe内部窗口已和parent建立通信连接，那么iframe窗口内部页面刷新或者跳转到新的url地址之前,都会出发`disconnect`事件，如果想重新连接需要重新调用`connection.connect(domWindow)`方法
+1. 在`parent`和`iframe`中都使用`var connection = createConnection():Connection`初始化连接对象
+1. 为`connection`实例添加监听方法:`onMessage`,`onConnect`,`onDisconnect`
+1. 接下来需要其中一方发起通信连接请求`connection.connect(domWindow)`
+1. 注意
+    1. **`onConnection`**在回调执行后，才可以`connection.sendMsg(msg)`进行消息传输
+    1. 或者在执行`connection.sendMsg(msg)`前判断`connection.connected`为`true`
+1. 如果通信连接已建立
+    1. 那么iframe窗口内部页面刷新或者跳转到新的url地址之前，都会出发`disconnect`事件
+    1. 重新连接需要其中一方再次主动调用`connection.connect(domWindow)`方法
 
 ## 库引入方法
 
@@ -29,12 +33,11 @@
 ### 第一种 直接全局引入`cic.js`文件
 
 ```
-<script src="https://unpkg.com/cic@2.0.8/dist/cic.js" type="text/script"></script>
+<script src="https://unpkg.com/cic@2.0.9/dist/cic.min.js" type="text/script"></script>
 
 <script type="text/script">
   var connection = window.Cic.createConnection();
 </script>
-
 ```
 
 ### 第二种 module形式引入
@@ -56,47 +59,56 @@ var connection = createConnection();
 
 跨iframe通信是否已连通
 
-#### 2.1 `connection.onConnect(callback)`
+#### 2.2 实例属性`connection.destroyed:Boolean`
+
+如果实例已销毁，那么当前实例不可再次发起连接请求
+
+#### 2.3 `connection.onConnect(callback)`
 
 添加通信连接成功时的回调方法
 
-#### 2.1 `connection.offConnect(callback)`
+#### 2.4 `connection.offConnect(callback)`
 
 移除通信连接成功时的回调方法
 
-#### 2.3 `connection.onDisconnect(callback)`
+注意：**其中`callback`和传入`onConnect`的回调方法是同一个。**如果无法理解可参考[addEventListener](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener)
+
+#### 2.5 `connection.onDisconnect(callback)`
 
 添加通信断开连接时的回调方法
 
-#### 2.4 `connection.offDisconnect(callback)`
+#### 2.6 `connection.offDisconnect(callback)`
 
 移除通信断开连接时的回调方法
 
+注意：**其中`callback`和传入`onDisconnect`的回调方法是同一个。**如果无法理解可参考[addEventListener](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener)
 
-#### 2.5 `connection.onMessage(callback)`
+#### 2.7 `connection.onMessage(callback:(msg:any)=>void)`
 
 添加接收消息的回调方法
 
-#### 2.6 `connection.offMessage(callback)`
+#### 2.8 `connection.offMessage(callback:(msg:any)=>void)`
 
-移除接收消息的回调方法
+移除接收消息的回调方法。
+
+注意：**其中`callback`和传入`onMessage`的回调方法是同一个。**如果无法理解可参考[addEventListener](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener)
 
 
-#### 2.7 `connection.destroy()`
+#### 2.9 `connection.destroy()`
 
-资源回收 并 如果连接已建立那么触发`disconnect`事件
+资源回收。如果连接已建立那么触发`disconnect`事件，通知对方连接断开
 
-#### 2.8 `connection.connect(domWindow)`
+#### 2.10 `connection.connect(domWindow)`
 
-- 说明：初始化完成后，调用该方法发起连接请求
-- 参数：`domWindow`表示和哪个window对象建立连接
-- `parent`和`iframe内部`都可以主动建立连接，主动建立连接的一方需要传入`domWindow`
+- 说明：发起连接请求
+- 参数：`domWindow`表示需要连接的window对象
+- `parent`或`iframe内部`都可以主动建立连接，主动建立连接的一方需要传入`domWindow`
 
-#### 2.9 `connection.sendMsg(msg:any)`
+#### 2.11 `connection.sendMsg(msg:any)`
 
-- 说明：发送消息到`parent`或者`iframe`窗口
+- 说明：发送消息
 - 参数：`msg`可以是任意对象
-- 注意：发送消息前需要判断 连接是否已建立 `connection.connected === true`
+- 注意：发送消息前需要确定在`onConnect`回调执行以后
 
 
 ## 示例代码
@@ -105,7 +117,7 @@ var connection = createConnection();
 
 ```
 <iframe id="iframeWindow" src="./inside.html"></iframe>
-<script type="text/javascript" src="https://unpkg.com/cic@2.0.8/dist/cic.js"></script>
+<script type="text/javascript" src="https://unpkg.com/cic@2.0.9/dist/cic.js"></script>
 <script type="text/javascript">
     var connection = window.Cic.createConnection();
 
@@ -138,7 +150,7 @@ var connection = createConnection();
 `iframe`窗口代码，文件名`inside.html`
 
 ```
-  <script type="text/javascript" src="https://unpkg.com/cic@2.0.8/dist/cic.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/cic@2.0.9/dist/cic.js"></script>
   <script type="text/javascript">
   // 用setTimeout故意延迟几秒，等待重试连接
   setTimeout(function() {

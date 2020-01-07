@@ -24,7 +24,7 @@
     1. 或者在执行`connection.sendMsg(msg)`前判断`connection.connected`为`true`
 1. 如果通信连接已建立
     1. 那么iframe窗口内部页面刷新或者跳转到新的url地址之前，都会出发`disconnect`事件
-    1. 重新连接需要其中一方再次主动调用`connection.connect(domWindow)`方法
+1. 主动断开连接或收到断开连接事件后，如果重新连接，需要其中一方再次主动调用`connection.connect(domWindow)`方法
 
 ## 库引入方法
 
@@ -33,7 +33,7 @@
 ### 第一种 直接全局引入`cic.js`文件
 
 ```
-<script src="https://unpkg.com/cic@2.0.9/dist/cic.min.js" type="text/script"></script>
+<script src="https://unpkg.com/cic@2.0.10/dist/cic.min.js" type="text/script"></script>
 
 <script type="text/script">
   var connection = window.Cic.createConnection();
@@ -117,7 +117,7 @@ var connection = createConnection();
 
 ```
 <iframe id="iframeWindow" src="./inside.html"></iframe>
-<script type="text/javascript" src="https://unpkg.com/cic@2.0.9/dist/cic.js"></script>
+<script type="text/javascript" src="https://unpkg.com/cic@2.0.10/dist/cic.js"></script>
 <script type="text/javascript">
     var connection = window.Cic.createConnection();
 
@@ -150,7 +150,7 @@ var connection = createConnection();
 `iframe`窗口代码，文件名`inside.html`
 
 ```
-  <script type="text/javascript" src="https://unpkg.com/cic@2.0.9/dist/cic.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/cic@2.0.10/dist/cic.js"></script>
   <script type="text/javascript">
   // 用setTimeout故意延迟几秒，等待重试连接
   setTimeout(function() {

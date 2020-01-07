@@ -1471,6 +1471,8 @@ Connection.prototype.disconnect = function () {
     });
     this.connected = false;
     this._connecting = false;
+    this._source = null;
+    this._cicId = null;
   }
 };
 
@@ -1482,7 +1484,6 @@ Connection.prototype.destroy = function () {
   this._messageListeners.length = 0;
   this._cicId = null;
   this._source = null;
-  this._timeoutId = null;
   removeMsgListener('message', this.__onMessage);
   removeMsgListener('beforeunload', this.__onBeforeUnload);
 };
